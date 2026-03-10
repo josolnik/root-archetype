@@ -1,0 +1,36 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash scripts/hooks/check_test_safety.sh",
+            "timeout": 5000
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash scripts/hooks/check_filesystem_path.sh",
+            "timeout": 5000
+          },
+          {
+            "type": "command",
+            "command": "bash scripts/hooks/agents_schema_guard.sh",
+            "timeout": 5000
+          },
+          {
+            "type": "command",
+            "command": "bash scripts/hooks/agents_reference_guard.sh",
+            "timeout": 5000
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,231 @@
+#!/bin/bash
+set -euo pipefail
+
+# Root-Archetype Project Initializer
+# Usage: ./init-project.sh <project-name> <project-root> [--repos "name:path,name:path"]
+
+usage() {
+    echo "Usage: $0 <project-name> <project-root> [--repos \"name:path,name:path\"]"
+    echo ""
+    echo "  project-name   Short identifier (e.g., my-project)"
+    echo "  project-root   Absolute path where the root repo will be created"
+    echo "  --repos        Comma-separated child repos to register (name:path pairs)"
+    echo ""
+    echo "Example:"
+    echo "  $0 my-project /tmp/test --repos \"app:/tmp/app,lib:/tmp/lib\""
+    exit 1
+}
+
+if [[ $# -lt 2 ]]; then
+    usage
+fi
+
+PROJECT_NAME="$1"
+PROJECT_ROOT="$2"
+shift 2
+
+REPOS=""
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --repos)
+            REPOS="$2"
+            shift 2
+            ;;
+        *)
+            echo "Unknown option: $1"
+            usage
+            ;;
+    esac
+done
+
+ARCHETYPE_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+echo "=== Root-Archetype Project Initializer ==="
+echo "Project:  ${PROJECT_NAME}"
+echo "Root:     ${PROJECT_ROOT}"
+echo "Repos:    ${REPOS:-none}"
+echo ""
+
+# --- Create project directory ---
+if [[ -d "${PROJECT_ROOT}" ]]; then
+    echo "WARNING: ${PROJECT_ROOT} already exists. Merging into existing directory."
+else
+    mkdir -p "${PROJECT_ROOT}"
+fi
+
+# --- Initialize git if needed ---
+if [[ ! -d "${PROJECT_ROOT}/.git" ]]; then
+    git init "${PROJECT_ROOT}"
+    cd "${PROJECT_ROOT}"
+    git checkout -b main 2>/dev/null || true
+else
+    cd "${PROJECT_ROOT}"
+fi
+
+# --- Copy archetype structure ---
+echo "Copying archetype structure..."
+
+# Directories
+mkdir -p agents/shared
+mkdir -p scripts/{hooks,validate,session,nightshift,utils,repos}
+mkdir -p .claude/{commands,skills/swarm}
+mkdir -p handoffs/{active,blocked,completed,archived}
+mkdir -p progress
+mkdir -p docs/guides
+mkdir -p logs
+mkdir -p coordination
+mkdir -p swarm
+
+# --- Template substitution function ---
+substitute() {
+    local file="$1"
+    sed -i \
+        -e "s|{{PROJECT_NAME}}|${PROJECT_NAME}|g" \
+        -e "s|{{PROJECT_ROOT}}|${PROJECT_ROOT}|g" \
+        "$file"
+}
+
+# --- Copy and substitute template files ---
+copy_and_sub() {
+    local src="$1"
+    local dst="$2"
+    if [[ -f "${ARCHETYPE_DIR}/${src}" ]]; then
+        cp "${ARCHETYPE_DIR}/${src}" "${dst}"
+        substitute "${dst}"
+    fi
+}
+
+# Core governance files
+copy_and_sub "CLAUDE.md" "CLAUDE.md"
+copy_and_sub "README.md" "README.md"
+copy_and_sub "SPEC.md" "SPEC.md"
+
+# Agent system
+for f in "${ARCHETYPE_DIR}"/agents/*.md; do
+    [[ -f "$f" ]] && cp "$f" "agents/$(basename "$f")"
+done
+for f in "${ARCHETYPE_DIR}"/agents/shared/*.md; do
+    [[ -f "$f" ]] && cp "$f" "agents/shared/$(basename "$f")"
+done
+
+# Hooks (all copied, user enables via settings.json)
+for f in "${ARCHETYPE_DIR}"/scripts/hooks/*.sh; do
+    [[ -f "$f" ]] && cp "$f" "scripts/hooks/$(basename "$f")" && chmod +x "scripts/hooks/$(basename "$f")"
+done
+
+# Validators
+for f in "${ARCHETYPE_DIR}"/scripts/validate/*; do
+    [[ -f "$f" ]] && cp "$f" "scripts/validate/$(basename "$f")"
+done
+chmod +x scripts/validate/*.py 2>/dev/null || true
+
+# Session management
+for f in "${ARCHETYPE_DIR}"/scripts/session/*.sh; do
+    [[ -f "$f" ]] && cp "$f" "scripts/session/$(basename "$f")" && chmod +x "scripts/session/$(basename "$f")"
+done
+
+# Nightshift
+for f in "${ARCHETYPE_DIR}"/scripts/nightshift/*.sh; do
+    [[ -f "$f" ]] && cp "$f" "scripts/nightshift/$(basename "$f")" && chmod +x "scripts/nightshift/$(basename "$f")"
+done
+copy_and_sub "nightshift.yaml" "nightshift.yaml" 2>/dev/null || true
+
+# Utils
+for f in "${ARCHETYPE_DIR}"/scripts/utils/*.sh; do
+    [[ -f "$f" ]] && cp "$f" "scripts/utils/$(basename "$f")" && chmod +x "scripts/utils/$(basename "$f")"
+done
+
+# Repo management
+for f in "${ARCHETYPE_DIR}"/scripts/repos/*.sh; do
+    [[ -f "$f" ]] && cp "$f" "scripts/repos/$(basename "$f")" && chmod +x "scripts/repos/$(basename "$f")"
+done
+
+# Swarm coordination
+for f in "${ARCHETYPE_DIR}"/swarm/*.py "${ARCHETYPE_DIR}"/swarm/*.md; do
+    [[ -f "$f" ]] && cp "$f" "swarm/$(basename "$f")"
+done
+
+# Claude Code config
+copy_and_sub ".claude/settings.json" ".claude/settings.json" 2>/dev/null || true
+for f in "${ARCHETYPE_DIR}"/.claude/commands/*.md; do
+    [[ -f "$f" ]] && cp "$f" ".claude/commands/$(basename "$f")"
+done
+for f in "${ARCHETYPE_DIR}"/.claude/skills/swarm/*; do
+    [[ -f "$f" ]] && cp "$f" ".claude/skills/swarm/$(basename "$f")"
+done
+
+# --- Build repo map rows for CLAUDE.md ---
+REPO_MAP_ROWS=""
+if [[ -n "$REPOS" ]]; then
+    echo "Registering child repos..."
+    IFS=',' read -ra REPO_PAIRS <<< "$REPOS"
+    for pair in "${REPO_PAIRS[@]}"; do
+        IFS=':' read -r name path <<< "$pair"
+        name=$(echo "$name" | xargs)
+        path=$(echo "$path" | xargs)
+        REPO_MAP_ROWS="${REPO_MAP_ROWS}| ${name} | \`${path}\` | (configure purpose) |\n"
+    done
+    # Substitute repo map into CLAUDE.md
+    sed -i "s|{{REPO_MAP_ROWS}}|${REPO_MAP_ROWS}|g" CLAUDE.md
+else
+    sed -i '/{{REPO_MAP_ROWS}}/d' CLAUDE.md
+fi
+
+# --- Initialize dependency map ---
+cat > .claude/dependency-map.json << 'DEPEOF'
+{
+  "schema_version": 1,
+  "edges": [],
+  "repos": {}
+}
+DEPEOF
+
+# --- Register child repos ---
+if [[ -n "$REPOS" ]]; then
+    IFS=',' read -ra REPO_PAIRS <<< "$REPOS"
+    for pair in "${REPO_PAIRS[@]}"; do
+        IFS=':' read -r name path <<< "$pair"
+        name=$(echo "$name" | xargs)
+        path=$(echo "$path" | xargs)
+        if [[ -x "scripts/repos/register-repo.sh" ]]; then
+            bash scripts/repos/register-repo.sh "$name" "$path" || echo "WARNING: Could not register ${name}"
+        fi
+    done
+fi
+
+# --- Create .gitignore ---
+cat > .gitignore << 'GIEOF'
+# Logs
+logs/*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Swarm state (local to each machine)
+swarm/*.db
+swarm/*.db-wal
+swarm/*.db-shm
+
+# Local settings
+.claude/settings.local.json
+GIEOF
+
+# --- Final validation ---
+echo ""
+echo "=== Project initialized: ${PROJECT_NAME} ==="
+echo "Root: ${PROJECT_ROOT}"
+echo ""
+echo "Next steps:"
+echo "  1. Review and customize CLAUDE.md"
+echo "  2. Configure hooks in .claude/settings.json"
+echo "  3. Add agent roles in agents/"
+echo "  4. Register child repos: scripts/repos/register-repo.sh <name> <path>"
+echo "  5. Run validators: scripts/validate/validate_agents_structure.py"

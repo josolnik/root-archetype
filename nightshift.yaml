@@ -1,0 +1,97 @@
+# Nightshift configuration — autonomous overnight task scheduler
+# This file configures which tasks run during nightshift and their priorities.
+
+schedule:
+  cron: "30 2 * * *"  # 2:30 AM daily
+  budget:
+    max_daily_percent: 90
+    reserve_percent: 5
+
+swarm:
+  enabled: false  # Set true to use swarm mode (--swarm flag)
+  max_workers: 2
+  worktree_base: "{{PROJECT_ROOT}}-nightshift"
+
+# Tasks by priority (higher = runs first)
+# risk_level: low (auto-merge), medium (draft PR), high (report only)
+tasks:
+  - name: security-footgun
+    priority: 10
+    risk_level: high
+    interval_hours: 24
+    analysis_only: false
+    description: "Scan for security anti-patterns"
+
+  - name: bug-finder
+    priority: 9
+    risk_level: high
+    interval_hours: 24
+    analysis_only: false
+    description: "Find potential bugs via static analysis"
+
+  - name: perf-regression
+    priority: 8
+    risk_level: medium
+    interval_hours: 48
+    analysis_only: true
+    description: "Check for performance regressions"
+
+  - name: lint-fix
+    priority: 7
+    risk_level: low
+    interval_hours: 72
+    analysis_only: false
+    description: "Fix linting issues"
+
+  - name: dead-code
+    priority: 6
+    risk_level: low
+    interval_hours: 168
+    analysis_only: true
+    description: "Identify dead code and unused imports"
+
+  - name: test-gap
+    priority: 5
+    risk_level: medium
+    interval_hours: 168
+    analysis_only: true
+    description: "Find untested code paths"
+
+  - name: doc-drift
+    priority: 4
+    risk_level: low
+    interval_hours: 168
+    analysis_only: true
+    description: "Check for documentation drift"
+
+  - name: docs-backfill
+    priority: 3
+    risk_level: low
+    interval_hours: 336
+    analysis_only: false
+    description: "Generate missing documentation"
+
+  - name: skill-groom
+    priority: 2
+    risk_level: low
+    interval_hours: 336
+    analysis_only: true
+    description: "Review and improve skill definitions"
+
+# Analysis-only tasks are safe to run even when inference is active
+# (they don't need test execution or inference endpoint access)
+
+# Merge policy for swarm mode
+merge_policy:
+  low_risk: auto_merge    # lint fixes, formatting, dead imports
+  medium_risk: draft_pr    # bug fixes, refactors
+  high_risk: report_only   # security findings, architecture changes
+
+# Consolidated report
+report:
+  format: umbrella_pr     # Single PR per run
+  sections:
+    - auto_merged          # "Here's what I fixed (low-risk)"
+    - needs_review         # "Here's what needs your judgment (medium/high)"
+    - blocked              # "Here's what I couldn't resolve"
+  group_by: repo           # Group findings by child repo
