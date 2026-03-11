@@ -1,0 +1,73 @@
+{
+  "context_budget": {
+    "enabled": true,
+    "facts_line_cap": 150,
+    "on_demand_large_artifacts": true,
+    "_doc": "Limit facts/context injected per turn. Large artifacts fetched on-demand, not pre-loaded."
+  },
+  "admission": {
+    "concurrency_limits": {
+      "subagent_max": 4,
+      "_doc": "Max concurrent subagents per session. Prevents context window and API cost explosion."
+    },
+    "budget_thresholds": {
+      "per_task_usd": 0.50,
+      "_doc": "Hard cap per individual task. Escalate or split if approaching limit."
+    }
+  },
+  "context_compaction": {
+    "enabled": true,
+    "allowed_artifact_classes": [
+      "file_list",
+      "lint_summary",
+      "failure_table",
+      "test_output"
+    ],
+    "_doc": "Only these artifact types get compacted summaries. Others are truncated or omitted."
+  },
+  "long_input": {
+    "two_stage_enabled": true,
+    "stage_thresholds": {
+      "cheap_summary_max_tokens": 2000,
+      "_doc": "For large inputs (>2000 tokens), first summarize with a cheap model, then process summary with expensive model."
+    }
+  },
+  "failure_action_map": {
+    "schema_format": "retry",
+    "logic_error": "think_harder",
+    "infra_timeout": "retry",
+    "complexity": "escalate",
+    "_doc": "Maps failure categories to escalation actions. 'retry' = same model, 'think_harder' = add CoT, 'escalate' = upgrade model tier."
+  },
+  "routing": {
+    "model_tier": {
+      "enabled": true,
+      "aggression": "moderate",
+      "table": {
+        "implementation_fix:1": "haiku",
+        "implementation_fix:2": "sonnet",
+        "implementation_fix:3": "opus",
+        "planning_synthesis:1": "haiku",
+        "planning_synthesis:2": "sonnet",
+        "planning_synthesis:3": "opus",
+        "long_input:1": "sonnet",
+        "long_input:2": "sonnet",
+        "long_input:3": "opus",
+        "read_search:1": "haiku",
+        "read_search:2": "haiku",
+        "read_search:3": "sonnet",
+        "resume:1": "haiku",
+        "resume:2": "sonnet",
+        "resume:3": "opus"
+      },
+      "_doc": "Task-type:complexity routing. Level 1=simple, 2=moderate, 3=complex. Route cheap tasks to cheap models."
+    }
+  },
+  "swarm_budget": {
+    "enabled": true,
+    "per_agent_usd": 2.00,
+    "per_session_usd": 20.00,
+    "rebalance_interval_trials": 50,
+    "_doc": "Swarm-specific budget controls. MetaOptimizer adjusts per-agent budgets based on species effectiveness."
+  }
+}
