@@ -3,7 +3,6 @@ set -euo pipefail
 
 # Hook: PreToolUse (matcher: "Edit|Write")
 # Merged guard: secret scan → log isolation → config tamper-proofing
-# Ported from twyne-root, generalized for root-archetype projects.
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(cd -- "$SCRIPT_DIR/../.." && pwd)}"

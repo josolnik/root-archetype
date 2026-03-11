@@ -8,8 +8,9 @@ set -euo pipefail
 # Configure ALLOWED_PATHS in this script for your project.
 
 ALLOWED_PATHS=(
-    "/mnt/raid0/"
-    # Add project-specific allowed paths here
+    # Add project-specific allowed paths here, e.g.:
+    # "/home/user/projects/"
+    # "/opt/data/"
 )
 
 # Always allow .claude config directories

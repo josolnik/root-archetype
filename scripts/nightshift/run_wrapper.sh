@@ -44,19 +44,20 @@ echo "Mode: $([ "$SWARM_MODE" = true ] && echo "swarm (${WORKERS} workers)" || e
 source "${ROOT_DIR}/scripts/utils/agent_log.sh"
 agent_session_start "Nightshift run ($([ "$SWARM_MODE" = true ] && echo "swarm" || echo "sequential"))"
 
-# --- Check inference load ---
+# --- Check compute load ---
 INFERENCE_ACTIVE=false
-if command -v pgrep &>/dev/null; then
-    LLAMA_RSS=0
+NIGHTSHIFT_HEAVY_PROCESS="${NIGHTSHIFT_HEAVY_PROCESS:-}"
+if [[ -n "$NIGHTSHIFT_HEAVY_PROCESS" ]] && command -v pgrep &>/dev/null; then
+    HEAVY_RSS=0
     while read -r pid; do
         RSS=$(awk '/^VmRSS/ {print int($2/1048576)}' "/proc/$pid/status" 2>/dev/null || echo 0)
-        LLAMA_RSS=$((LLAMA_RSS + RSS))
-    done < <(pgrep -f "llama-server" 2>/dev/null || true)
+        HEAVY_RSS=$((HEAVY_RSS + RSS))
+    done < <(pgrep -f "$NIGHTSHIFT_HEAVY_PROCESS" 2>/dev/null || true)
 
-    THRESHOLD_GB="${NIGHTSHIFT_INFERENCE_THRESHOLD_GB:-200}"
-    if [[ $LLAMA_RSS -ge $THRESHOLD_GB ]]; then
+    THRESHOLD_GB="${NIGHTSHIFT_INFERENCE_THRESHOLD_GB:-50}"
+    if [[ $HEAVY_RSS -ge $THRESHOLD_GB ]]; then
         INFERENCE_ACTIVE=true
-        echo "Inference active (${LLAMA_RSS}GB RSS >= ${THRESHOLD_GB}GB threshold)"
+        echo "Heavy compute active (${HEAVY_RSS}GB RSS >= ${THRESHOLD_GB}GB threshold)"
         echo "Running analysis-only tasks."
     fi
 fi

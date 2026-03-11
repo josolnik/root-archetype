@@ -10,7 +10,7 @@ usage() {
     echo "Coupling types: binary, data, validation, config, api"
     echo ""
     echo "Example:"
-    echo "  $0 orchestrator llama binary --note \"Launches llama-server subprocess\""
+    echo "  $0 app-server shared-lib binary --note \"Depends on shared library build\""
     exit 1
 }
 

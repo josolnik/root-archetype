@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 # Shared hook utility library — sourced by all hooks for consistent behavior.
 # Usage: source "$(dirname "${BASH_SOURCE[0]}")/hook-utils.sh"
-#
-# Ported from twyne-root, generalized for any root-archetype project.
 
 # --- Fail-open exit ---
 # Logs a warning and exits 0 (non-blocking). Use when a hook encounters
