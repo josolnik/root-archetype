@@ -62,6 +62,12 @@ else
     cd "${PROJECT_ROOT}"
 fi
 
+# --- Archetype development directories (NOT copied to clones) ---
+# progress/    — archetype's own development log
+# handoffs/    — archetype's own work tracking
+# logs/        — archetype's own session logs
+# These directories are created empty in clones (see mkdir below).
+
 # --- Copy archetype structure ---
 echo "Copying archetype structure..."
 
