@@ -95,6 +95,10 @@ Created the `root-archetype` repository — a project-agnostic template for seed
 - Nightshift sequential mode (run_wrapper.sh:95) — TODO only
 - Nightshift worker launch (run_wrapper.sh:154) — TODO only
 
+**Template gaps:**
+- `init-project.sh` doesn't copy `maintainers.json` to new projects — tamper-proofing hook silently degrades
+- No `{{MAINTAINER_EMAIL}}` template variable — seeded projects can't auto-populate maintainer identity
+
 **Documentation drift:**
 - CLAUDE.md listed 4 validators, only 2 exist (fixed 2026-03-14)
 
