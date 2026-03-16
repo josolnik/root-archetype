@@ -82,6 +82,47 @@ Audit trail in `logs/agent_audit.log`. Analysis: `scripts/utils/agent_log_analyz
 - `scripts/repos/scan-agents.sh` — Discover agents across all registered repos
 - `scripts/repos/sync-repos.sh` — Pull all registered repos, rebuild indexes
 
+## Codebase Intelligence (GitNexus)
+
+This project uses [GitNexus](https://github.com/abhigyanpatwari/GitNexus) for structural codebase awareness across all registered repos. GitNexus builds a knowledge graph (symbols, call edges, clusters, execution flows) from source code and exposes it via CLI tools and MCP.
+
+### Setup
+
+```bash
+npm install -g gitnexus       # One-time global install
+gitnexus analyze .             # Index this repo
+scripts/repos/sync-repos.sh   # Indexes all child repos automatically
+```
+
+### Usage
+
+Before modifying code, query the graph:
+
+| Command | Purpose |
+|---------|---------|
+| `gitnexus context <symbol>` | 360-degree view: callers, callees, processes |
+| `gitnexus impact <symbol>` | Blast radius: what breaks if you change this |
+| `gitnexus query "<concept>"` | Find execution flows by concept |
+| `gitnexus list` | Show all indexed repos |
+
+### Cross-Repo Awareness
+
+All registered child repos are indexed into a shared global registry (`~/.gitnexus/registry.json`). Use `--repo <name>` to target a specific repo:
+
+```bash
+gitnexus context --repo my-app validateUser
+gitnexus impact --repo my-lib parseConfig
+```
+
+### Re-indexing
+
+Indexes go stale when code changes. Re-index after significant work:
+
+```bash
+gitnexus analyze .                    # This repo only
+scripts/repos/sync-repos.sh --index  # All child repos
+```
+
 ## Code Style
 
 - Shell: `#!/bin/bash` with `set -euo pipefail`

@@ -22,5 +22,9 @@ swarm/*.db-shm
 .session-stats
 .push-logs.lock
 
+# GitNexus indexes (rebuilt on demand)
+.gitnexus/
+AGENTS.md
+
 # Local settings
 .claude/settings.local.json

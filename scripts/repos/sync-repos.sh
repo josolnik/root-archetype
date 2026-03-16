@@ -2,15 +2,17 @@
 set -euo pipefail
 
 # Sync all registered repos — pull latest, rebuild indexes
-# Usage: sync-repos.sh [--pull]
+# Usage: sync-repos.sh [--pull] [--index]
 
 ROOT_DIR="$(git rev-parse --show-toplevel 2>/dev/null || echo "$(cd "$(dirname "$0")/../.." && pwd)")"
 DEP_MAP="${ROOT_DIR}/.claude/dependency-map.json"
 
 PULL=false
+INDEX=false
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --pull) PULL=true; shift ;;
+        --index) INDEX=true; shift ;;
         *) shift ;;
     esac
 done
@@ -60,8 +62,21 @@ while IFS='|' read -r name path; do
         git -C "$path" pull --rebase 2>&1 | sed 's/^/  /' || echo "  Pull failed (non-critical)"
     fi
 
+    # GitNexus indexing
+    if [[ "$INDEX" == "true" ]] && command -v gitnexus &>/dev/null; then
+        echo "  Indexing with GitNexus..."
+        gitnexus analyze "$path" 2>&1 | tail -3 | sed 's/^/  /' || echo "  GitNexus indexing failed (non-critical)"
+    fi
+
     ((SYNCED++))
 done <<< "$REPOS"
+
+# Index the root repo too
+if [[ "$INDEX" == "true" ]] && command -v gitnexus &>/dev/null; then
+    echo ""
+    echo "--- Indexing root repo: ${ROOT_DIR} ---"
+    gitnexus analyze "$ROOT_DIR" 2>&1 | tail -3 | sed 's/^/  /' || echo "  GitNexus indexing failed (non-critical)"
+fi
 
 echo ""
 echo "Synced: ${SYNCED}, Failed: ${FAILED}"

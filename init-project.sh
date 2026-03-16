@@ -220,6 +220,15 @@ swarm/*.db
 swarm/*.db-wal
 swarm/*.db-shm
 
+# Session state (local, gitignored)
+.session-identity
+.session-stats
+.push-logs.lock
+
+# GitNexus indexes (rebuilt on demand)
+.gitnexus/
+AGENTS.md
+
 # Local settings
 .claude/settings.local.json
 GIEOF
@@ -235,3 +244,4 @@ echo "  2. Configure hooks in .claude/settings.json"
 echo "  3. Add agent roles in agents/"
 echo "  4. Register child repos: scripts/repos/register-repo.sh <name> <path>"
 echo "  5. Run validators: scripts/validate/validate_agents_structure.py"
+echo "  6. Index repos with GitNexus: npm install -g gitnexus && scripts/repos/sync-repos.sh --index"
