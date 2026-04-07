@@ -172,6 +172,45 @@ for f in "${ARCHETYPE_DIR}"/.claude/skills/upstream/*; do
     [[ -f "$f" ]] && cp "$f" ".claude/skills/upstream/$(basename "$f")"
 done
 
+# Project-wiki skill (KB governance: lint + query)
+if [[ -d "${ARCHETYPE_DIR}/.claude/skills/project-wiki" ]]; then
+    mkdir -p .claude/skills/project-wiki/{scripts,references}
+    for f in "${ARCHETYPE_DIR}"/.claude/skills/project-wiki/*; do
+        [[ -f "$f" ]] && cp "$f" ".claude/skills/project-wiki/$(basename "$f")"
+    done
+    for f in "${ARCHETYPE_DIR}"/.claude/skills/project-wiki/scripts/*; do
+        [[ -f "$f" ]] && cp "$f" ".claude/skills/project-wiki/scripts/$(basename "$f")"
+    done
+    for f in "${ARCHETYPE_DIR}"/.claude/skills/project-wiki/references/*; do
+        [[ -f "$f" ]] && cp "$f" ".claude/skills/project-wiki/references/$(basename "$f")"
+    done
+fi
+
+# Wiki structure (wiki.yaml + SCHEMA.md scaffold)
+if [[ -f "${ARCHETYPE_DIR}/_templates/wiki.yaml.template" ]]; then
+    mkdir -p wiki
+    cp "${ARCHETYPE_DIR}/_templates/wiki.yaml.template" "wiki.yaml"
+    substitute "wiki.yaml"
+    # Create minimal SCHEMA.md
+    cat > "wiki/SCHEMA.md" <<'WIKIEOF'
+# Wiki Schema — Living Taxonomy
+
+> Authoritative taxonomy for this project. Add categories and aliases as needed.
+> Updated: $(date +%Y-%m-%d)
+
+## Categories
+
+| Key | Label | Description |
+|-----|-------|-------------|
+| `general` | General | Default category for uncategorized entries |
+
+## Aliases
+
+| Alias | Maps To |
+|-------|---------|
+WIKIEOF
+fi
+
 # Devcontainer
 copy_and_sub ".devcontainer/devcontainer.json" ".devcontainer/devcontainer.json" 2>/dev/null || true
 

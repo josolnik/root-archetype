@@ -17,47 +17,23 @@ Root-archetype has 5 validators but none that lint the knowledge base itself. Th
 
 ### Phase 1 — Upstream freshness check (P0)
 
-- [ ] Port `check_handoff_freshness.sh` from epyc-root to `scripts/validate/check_handoff_freshness.sh`
-  - Replace hardcoded `/mnt/raid0/llm/epyc-root/handoffs/active` with repo-relative `$(cd "$(dirname "$0")/../.." && pwd)/handoffs/active`
-  - Accept `--warn-days N` and `--stale-days N` flags (defaults: 14, 30)
-- [ ] Add `knowledge-lint` task to `nightshift.yaml` at priority 4.5 (between doc-drift and docs-backfill)
+- [x] Port `check_handoff_freshness.sh` from epyc-root — ✅ 2026-04-07. SUPERSEDED: freshness checking absorbed into project-wiki skill lint operation (stale_entries pass). The standalone shell script is still available in epyc-root with portable paths (no more hardcoded `/mnt/raid0/`).
+- [x] Add `knowledge-lint` task to `nightshift.yaml` — ✅ 2026-04-07. Done in epyc-root. Root-archetype nightshift.yaml updated as part of project-wiki skill.
 
 ### Phase 2 — Knowledge base linter (P0)
 
-- [ ] Create `scripts/validate/lint_knowledge_base.py` with 4 lint passes:
-  1. **Orphan handoff detection**: parse all `*-index.md` files in `handoffs/active/`, extract referenced handoff filenames via regex, compare against actual files — any file not referenced by any index is orphaned
-  2. **Stale handoff flagging**: stat each file, flag >14d as aging, >30d as stale
-  3. **Contradictory status detection**: extract `**Status**:` line from each handoff, compare against directory placement (`active/` vs `completed/` vs `blocked/`), flag mismatches
-  4. **Un-actioned intake detection**: if `research/intake_index.yaml` exists, find entries with `verdict: worth_investigating` or `verdict: new_opportunity` that have no `handoffs_created` or `handoffs_updated` field and are older than 7 days
-- [ ] Register linter in `nightshift.yaml` under the `knowledge-lint` task
+- [x] Create lint implementation — ✅ 2026-04-07. SUPERSEDED by project-wiki skill: `.claude/skills/project-wiki/scripts/lint_wiki.py` with 5 passes (orphan, stale, contradictory, un-actioned, missing cross-refs). Config-driven via `wiki.yaml`. Validated in epyc-root first (found 4 errors + 71 warnings), then upstreamed.
+- [x] Register linter — ✅ 2026-04-07. Part of project-wiki skill, wired to nightshift in epyc-root.
 - [ ] Add to `CLAUDE.md` validators list
 
 ### Phase 3 — Skill template additions (P1)
 
-- [ ] Create `_templates/skill/references/credibility-scoring-rubric.md` with point-based rubric:
-  - Peer-reviewed venue: +2
-  - Published within 12 months: +1 / older than 24 months: -1
-  - Author authority (h-index, affiliation): +1
-  - Identified commercial/methodological bias: -1
-  - Independent corroboration by other sources: +1 per source (max +2)
-  - Tiers: High (4-6), Medium (2-3), Low (0-1), Reject (<0)
-- [ ] Add commented anti-confirmation-bias section to `_templates/skill/SKILL.md.template`:
-  ```
-  <!-- Optional: Anti-confirmation-bias (uncomment for research-oriented skills)
-  ## Bias Mitigation
-  - After initial assessment, actively search for contradicting evidence
-  - If all key claims align with existing work, explicitly search for "{claim} criticism" and "{technique} limitations"
-  - Note any contradicting evidence in entry notes with explicit `contradicting_evidence:` field
-  -->
-  ```
+- [x] Create `_templates/skill/references/credibility-scoring-rubric.md` — ✅ 2026-04-07. 6-point rubric with High/Medium/Low tiers and skip criteria.
+- [ ] Add commented anti-confirmation-bias section to `_templates/skill/SKILL.md.template`
 
 ### Phase 4 — Session persistence template (P2)
 
-- [ ] Create `_templates/skill/references/session-persistence-schema.md` documenting the `.research-session.json` pattern:
-  - Schema: `{session_id, started_at, last_checkpoint, phase, entries_processed: [], entries_remaining: [], state: {}}`
-  - Resume protocol: on skill invocation, check for existing session file, offer to resume or start fresh
-  - Staleness: warn if session file >7 days old
-  - Nightshift integration: nightshift tasks can check for session file to resume interrupted work
+- [ ] Create `_templates/skill/references/session-persistence-schema.md` — deferred (P2, documentation only)
 
 ---
 
