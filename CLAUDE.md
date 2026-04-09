@@ -25,6 +25,13 @@ Pre/post tool-use hooks for Claude Code sessions:
 - Test safety (`check_test_safety.sh`)
 - Skill usage logging (`skill_usage_log.sh`)
 
+### Secrets Protection (`secrets/`)
+Convention for sensitive data that must never be read by AI agents:
+- `secrets/` directory: gitkepped but contents gitignored
+- `secrets/.secretpaths`: configurable list of protected path patterns
+- `scripts/hooks/check_secrets_read.sh` hook: blocks Read/Glob/Grep/Bash access to protected paths
+- Sandbox (`.claude/settings.local.json`): OS-level filesystem isolation via bubblewrap
+
 ### Validators (`scripts/validate/`)
 - Agent structure validation (`validate_agents_structure.py`)
 - Reference integrity (`validate_agents_references.py`)
@@ -54,12 +61,21 @@ Reusable skill definitions for common workflows:
 - Handoff creation (`new-handoff/`)
 - Safe commit with secret scanning (`safe-commit/`)
 - Skill discovery (`find-skills/`)
+- Project wiki maintenance (`project-wiki/`)
 
 ### Commands (`.claude/commands/`)
 Slash command definitions for Claude Code sessions:
 - `/swarm` — Swarm coordination operations (`swarm.md`)
 - `/upstream` — Contribute instance changes back to archetype (`upstream.md`)
 - `/simplify` — Review changed code for reuse, quality, and efficiency (`simplify.md`)
+
+
+### Templates (`_templates/`)
+Scaffolding for new projects and skills:
+- `_templates/skill/` — Skill structure template and reference docs
+- `_templates/hooks/` — Hook templates (PostStop verification gate)
+- `_templates/cli-wrappers/` — CLI wrapper templates (GitHub CLI)
+- `_templates/wiki.yaml.template` — Wiki configuration template
 
 ## Handoff Workflow
 
