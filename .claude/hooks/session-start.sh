@@ -130,6 +130,14 @@ if [[ -n "$AGENT_DIFFS" ]]; then
   CONTEXT+="\nAGENT FILE UPDATES on remote:\n$AGENT_DIFFS"
 fi
 
+# --- Stale wiki detection ---
+if [[ -f "$PROJECT_DIR/knowledge/research/.last_compile" ]]; then
+  NEWEST_SOURCE="$(find "$PROJECT_DIR/logs/progress" "$PROJECT_DIR/notes" -name '*.md' -newer "$PROJECT_DIR/knowledge/research/.last_compile" 2>/dev/null | head -1)"
+  if [[ -n "$NEWEST_SOURCE" ]]; then
+    CONTEXT+="Knowledge base may be stale. Run /project-wiki to update.\n"
+  fi
+fi
+
 # --- Structural invariant check ---
 if [[ -x "$PROJECT_DIR/scripts/validate/validate_agents_structure.py" ]]; then
   if ! python3 "$PROJECT_DIR/scripts/validate/validate_agents_structure.py" &>/dev/null; then

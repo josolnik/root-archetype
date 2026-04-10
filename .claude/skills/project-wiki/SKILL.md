@@ -1,11 +1,11 @@
 ---
 name: project-wiki
-description: Lint, query, and maintain the project knowledge base. Use when auditing KB health, searching for compiled knowledge, or checking governance hygiene. Do not use when ingesting new research (use research-intake if available).
+description: Lint, query, compile, and maintain the project knowledge base. Use when auditing KB health, searching for compiled knowledge, checking governance hygiene, or compiling user streams into shared wiki. Do not use when ingesting new research (use research-intake if available).
 ---
 
 # Project Wiki
 
-Use this skill to maintain and query the project's knowledge base.
+Use this skill to maintain, compile, and query the project's knowledge base.
 
 Use when:
 
@@ -13,6 +13,7 @@ Use when:
 - Asking "what do we know about X?" and getting compiled answers with citations
 - Checking governance hygiene before handoff reviews or nightshift runs
 - Verifying that all intake entries have been actioned
+- Compiling per-user streams into shared wiki output
 
 Do not use when:
 
@@ -28,7 +29,7 @@ See `_templates/wiki.yaml.template` for the config schema.
 
 ## Operations
 
-### Operation 1 — Lint
+### Operation 1 -- Lint
 
 Audit the knowledge base for hygiene issues. Run via:
 ```
@@ -52,7 +53,7 @@ See `references/lint-passes.md` for detailed pass documentation.
 Structured report with severity levels: ERROR (must fix), WARNING (should review), INFO.
 Exit code 1 if any ERRORs, 0 otherwise.
 
-### Operation 2 — Query
+### Operation 2 -- Query
 
 Answer questions about compiled knowledge with citations.
 
@@ -64,8 +65,34 @@ python3 .claude/skills/project-wiki/scripts/query_wiki.py "{query}" --human
 
 Searches intake index, handoffs, and deep-dives. Returns ranked results.
 
+### Operation 3 -- Compile
+
+Compile per-user streams into shared knowledge artifacts.
+
+Invoke with: "compile the wiki" / "update knowledge base"
+
+#### Compilation Sources
+
+Read from ALL user streams:
+- `logs/progress/*/` -- per-user session progress reports
+- `notes/*/` -- per-user notes, plans, research
+- `notes/*/handoffs/` -- per-user handoff documents
+
+#### Compilation Outputs
+
+1. **Wiki pages** written to `knowledge/wiki/`
+2. **Taxonomy updates** appended to `knowledge/taxonomy.yaml` for new categories discovered during compilation
+3. **Handoff index** regenerated at `notes/handoffs/INDEX.md` by scanning all `notes/*/handoffs/*.md`
+
+#### Compilation State
+
+Track last compilation via `knowledge/research/.last_compile` timestamp file.
+The session-start hook checks this timestamp against source modification dates
+and warns when recompilation is needed.
+
 ## Gotchas
 
-- Lint only reports — does NOT auto-fix.
-- Query synthesizes from existing KB — does NOT fetch external information.
+- Lint only reports -- does NOT auto-fix.
+- Query synthesizes from existing KB -- does NOT fetch external information.
+- Compile reads all user streams but writes only to shared locations (`knowledge/`, `notes/handoffs/INDEX.md`).
 - Scaling thresholds in `wiki.yaml` are advisory only.
