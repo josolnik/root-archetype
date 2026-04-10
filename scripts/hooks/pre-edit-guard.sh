@@ -6,10 +6,10 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(cd -- "$SCRIPT_DIR/../.." && pwd)}"
-PATTERNS_FILE="$PROJECT_DIR/.claude/hooks/lib/secret-patterns.txt"
-MAINTAINERS_FILE="$PROJECT_DIR/MAINTAINERS.json"
+PATTERNS_FILE="$PROJECT_DIR/scripts/hooks/lib/secret-patterns.txt"
+MAINTAINERS_FILE="$PROJECT_DIR/.claude/maintainers.json"
 
-source "$PROJECT_DIR/.claude/hooks/lib/hook-utils.sh" 2>/dev/null || true
+source "$PROJECT_DIR/scripts/hooks/lib/hook-utils.sh" 2>/dev/null || true
 trap 'hook_fail_open "pre-edit-guard" "unexpected error"' ERR
 
 INPUT="$(cat)"
@@ -84,7 +84,7 @@ USER_EMAIL="$(git config user.email 2>/dev/null || echo "")"
 
 IS_CORE=false
 case "$REL_PATH" in
-  .claude/*|CLAUDE.md|scripts/*|docs/*)
+  .claude/*|CLAUDE.md|SPEC.md|scripts/*|docs/*)
     IS_CORE=true
     ;;
 esac
@@ -102,7 +102,7 @@ if [[ "$IS_CORE" == "true" ]]; then
   # Hard-block behavioral config files for non-maintainers
   IS_HARD_BLOCK=false
   case "$REL_PATH" in
-    CLAUDE.md|.claude/settings.json|.claude/settings.local.json|.claude/hooks/*|.claude/agents/*)
+    CLAUDE.md|.claude/settings.json|.claude/settings.local.json|scripts/hooks/*|.claude/agents/*)
       IS_HARD_BLOCK=true
       ;;
   esac
