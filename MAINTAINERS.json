@@ -1,0 +1,5 @@
+{
+  "project": "{{PROJECT_NAME}}",
+  "global_maintainers": ["{{MAINTAINER_EMAIL}}"],
+  "repo_maintainers": {}
+}

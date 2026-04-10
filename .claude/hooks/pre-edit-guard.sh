@@ -7,7 +7,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(cd -- "$SCRIPT_DIR/../.." && pwd)}"
 PATTERNS_FILE="$PROJECT_DIR/.claude/hooks/lib/secret-patterns.txt"
-MAINTAINERS_FILE="$PROJECT_DIR/.claude/maintainers.json"
+MAINTAINERS_FILE="$PROJECT_DIR/MAINTAINERS.json"
 
 source "$PROJECT_DIR/.claude/hooks/lib/hook-utils.sh" 2>/dev/null || true
 trap 'hook_fail_open "pre-edit-guard" "unexpected error"' ERR

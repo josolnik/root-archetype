@@ -106,7 +106,9 @@ copy_and_sub() {
 }
 
 # Core governance files
+copy_and_sub "AGENT.md" "AGENT.md"
 copy_and_sub "CLAUDE.md" "CLAUDE.md"
+copy_and_sub "CODEX.md" "CODEX.md"
 copy_and_sub "README.md" "README.md"
 
 # Agent system
@@ -191,9 +193,9 @@ touch knowledge/wiki/.gitkeep knowledge/research/.gitkeep local/.gitkeep repos/.
 copy_and_sub ".devcontainer/devcontainer.json" ".devcontainer/devcontainer.json" 2>/dev/null || true
 
 # Maintainers config (required by tamper-proofing hook)
-if [[ -f "${ARCHETYPE_DIR}/.claude/maintainers.json" ]]; then
-    cp "${ARCHETYPE_DIR}/.claude/maintainers.json" ".claude/maintainers.json"
-    substitute ".claude/maintainers.json"
+if [[ -f "${ARCHETYPE_DIR}/MAINTAINERS.json" ]]; then
+    cp "${ARCHETYPE_DIR}/MAINTAINERS.json" "MAINTAINERS.json"
+    substitute "MAINTAINERS.json"
 fi
 
 # --- Build repo map rows for CLAUDE.md ---
@@ -275,7 +277,7 @@ for d in agents agents/shared agents/roles scripts/hooks scripts/validate script
     fi
 done
 
-for f in CLAUDE.md .claude/settings.json .claude/maintainers.json .archetype-manifest.json; do
+for f in CLAUDE.md AGENT.md .claude/settings.json MAINTAINERS.json .archetype-manifest.json; do
     if [[ ! -f "$f" ]]; then
         echo "  WARN: Missing file: $f"
         VALIDATION_FAILED=1
