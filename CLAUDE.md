@@ -18,5 +18,4 @@ Claude wrappers include the engine-neutral content via reference.
 ## Hooks
 
 All hooks live in `scripts/hooks/`. Claude wiring in `.claude/settings.json`
-points to those paths. Policy hooks in `.claude/hooks/` handle session lifecycle,
-edit guards, and subagent context injection.
+points to those paths. See `scripts/hooks/README.md` for hook documentation.

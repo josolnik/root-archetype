@@ -96,8 +96,6 @@ chmod +x scripts/hooks/*.sh scripts/validate/*.py scripts/session/*.sh \
 # --- Copy Claude Code config ---
 copy_sub ".claude/settings.json" ".claude/settings.json"
 copy_tree "${ARCHETYPE_DIR}/.claude/skills" .claude/skills
-copy_tree "${ARCHETYPE_DIR}/.claude/hooks" .claude/hooks
-chmod +x .claude/hooks/*.sh 2>/dev/null || true
 
 # --- Copy supporting files ---
 copy_sub ".devcontainer/devcontainer.json" ".devcontainer/devcontainer.json"

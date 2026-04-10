@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/session-start.sh",
+            "command": "bash scripts/hooks/session-start.sh",
             "timeout": 15000
           }
         ]
@@ -16,38 +16,13 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/session-end.sh",
+            "command": "bash scripts/hooks/session-end.sh",
             "timeout": 15000
           }
         ]
       }
     ],
     "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash scripts/hooks/check_test_safety.sh",
-            "timeout": 5000
-          },
-          {
-            "type": "command",
-            "command": "bash .claude/skills/safe-commit/scripts/pre-commit-hook.sh",
-            "timeout": 10000
-          }
-        ]
-      },
-      {
-        "matcher": "Skill",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash scripts/hooks/skill_usage_log.sh",
-            "timeout": 5000
-          }
-        ]
-      },
       {
         "matcher": "Read|Glob|Grep|Bash",
         "hooks": [
@@ -63,17 +38,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/pre-edit-guard.sh",
-            "timeout": 5000
-          },
-          {
-            "type": "command",
             "command": "bash scripts/hooks/check_filesystem_path.sh",
-            "timeout": 5000
-          },
-          {
-            "type": "command",
-            "command": "bash scripts/hooks/agents_schema_guard.sh",
             "timeout": 5000
           }
         ]
@@ -84,39 +49,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/post-tool-use-audit.sh",
-            "timeout": 5000
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash .claude/hooks/post-edit-check.sh",
-            "timeout": 10000
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash .claude/hooks/correction-detection.sh",
-            "timeout": 5000
-          }
-        ]
-      }
-    ],
-    "SubagentStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash .claude/hooks/subagent-start.sh",
+            "command": "bash scripts/hooks/post-tool-use-audit.sh",
             "timeout": 5000
           }
         ]
