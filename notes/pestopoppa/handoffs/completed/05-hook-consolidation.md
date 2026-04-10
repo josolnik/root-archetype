@@ -1,6 +1,6 @@
 # Handoff 5: Hook Consolidation + Settings
 
-**Status**: active
+**Status**: completed
 **Created**: 2026-04-09
 **Priority**: 5 (can run in parallel with Handoffs 2-4 after Handoff 1)
 **Estimated scope**: move/merge ~13 hooks → single directory, rewrite settings.json

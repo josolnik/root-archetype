@@ -1,6 +1,6 @@
 # Handoff 6: Agent File Audit
 
-**Status**: active
+**Status**: completed
 **Created**: 2026-04-09
 **Priority**: 6 (depends on Handoffs 1, 2, 5)
 **Estimated scope**: review + edit ~8 agent files, update validators

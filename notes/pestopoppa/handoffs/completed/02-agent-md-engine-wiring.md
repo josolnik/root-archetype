@@ -1,6 +1,6 @@
 # Handoff 2: AGENT.md + Engine Wiring
 
-**Status**: active
+**Status**: completed
 **Created**: 2026-04-09
 **Priority**: 2 (depends on Handoff 1 completing structure cleanup)
 **Estimated scope**: 4 new files, 2 rewrites, skill migration

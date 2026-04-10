@@ -1,6 +1,6 @@
 # Handoff 4: Init Flow
 
-**Status**: active
+**Status**: completed
 **Created**: 2026-04-09
 **Priority**: 4 (depends on Handoffs 1-3 for final structure)
 **Estimated scope**: 1 rewrite (init-project.sh), 1 new skill, hook update

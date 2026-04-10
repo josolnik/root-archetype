@@ -1,6 +1,6 @@
 # Handoff 1: Structure Cleanup
 
-**Status**: active
+**Status**: completed
 **Created**: 2026-04-09
 **Priority**: 1 (must complete before all other handoffs)
 **Estimated scope**: ~40 delete/move operations, 0 new code
