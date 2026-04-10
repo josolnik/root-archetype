@@ -10,7 +10,7 @@
 
 ## Agent Schema
 
-All role files in `agents/*.md` must contain these 6 sections:
+All role files in `agents/roles/*.md` must contain these 6 sections:
 
 ```
 ## Mission
@@ -36,10 +36,9 @@ Cross-cutting policy in `agents/shared/`:
 - Code changes → targeted PRs with test coverage
 - Audit trail → automatic via agent_log.sh
 
-## Swarm Participation
+## Collaboration
 
-Agents can participate in swarm coordination by:
-1. Registering with the coordinator (`swarm/coordinator.py`)
-2. Claiming work items from the priority queue
-3. Posting findings to the message board
-4. Acquiring resource locks before using shared resources
+Agents collaborate through:
+1. Handoff documents in `notes/<user>/handoffs/`
+2. Progress logs in `logs/progress/<user>/`
+3. Shared knowledge in `knowledge/`

@@ -19,28 +19,25 @@ source scripts/utils/agent_log.sh
 {{PROJECT_NAME}}/
 ├── agents/              # Agent role definitions (thin-map architecture)
 │   ├── shared/          # Cross-cutting policy
-│   └── *.md             # Role-specific overlays
+│   └── roles/           # Role-specific overlays
 ├── scripts/
 │   ├── hooks/           # Pre/post tool-use enforcement gates
 │   ├── validate/        # Governance validators
 │   ├── session/         # Session lifecycle management
-│   ├── nightshift/      # Autonomous overnight scheduler
 │   ├── repos/           # Child repo management
 │   └── utils/           # Shared utilities (logging, analysis)
 ├── secrets/             # Protected secrets (contents gitignored)
-├── swarm/               # Swarm coordination primitive
+├── knowledge/           # Wiki and research
+│   ├── wiki/            # Compiled knowledge base
+│   └── research/        # Deep dives and analysis
+├── notes/               # Per-user notes and handoffs
+├── logs/                # Audit trail and progress
+├── repos/               # Child repo workspace
+├── local/               # Instance-local data (gitignored)
 ├── .claude/             # Claude Code configuration
 │   ├── settings.json    # Hook wiring
 │   ├── commands/        # Slash commands
 │   └── skills/          # Packaged skills
-├── handoffs/            # Cross-repo work tracking
-│   ├── active/
-│   ├── blocked/
-│   ├── completed/
-│   └── archived/
-├── progress/            # Daily progress (YYYY-MM/YYYY-MM-DD.md)
-├── logs/                # Audit trail
-├── coordination/        # Cross-repo coordination
 └── docs/                # Long-lived documentation
 ```
 
@@ -51,18 +48,6 @@ source scripts/utils/agent_log.sh
 - **Agent System**: Thin-map architecture — shared policy + lean role overlays
 - **Secrets Protection**: Config-driven read-blocking hook + sandbox template
 - **Audit Logging**: Append-only JSONL with session tracking
-- **Swarm Coordination**: SQLite-backed agent coordination with priority scheduling
-
-## Swarm Architecture
-
-The swarm primitive provides multi-agent coordination:
-- Agent registration + heartbeat
-- Priority work queue (not FIFO — information-gain-aware scheduling)
-- Message board (channels + threaded posts)
-- Resource locks with TTL
-- Experiment scheduler with Bayesian scoring
-
-See `swarm/README.md` for details.
 
 ## Child Repo Management
 

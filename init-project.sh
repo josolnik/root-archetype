@@ -69,26 +69,20 @@ else
     cd "${PROJECT_ROOT}"
 fi
 
-# --- Archetype development directories (NOT copied to clones) ---
-# progress/    — archetype's own development log
-# handoffs/    — archetype's own work tracking
-# logs/        — archetype's own session logs
-# These directories are created empty in clones (see mkdir below).
-
 # --- Copy archetype structure ---
 echo "Copying archetype structure..."
 
 # Directories
-mkdir -p agents/shared
-mkdir -p scripts/{hooks,validate,session,nightshift,utils,repos,upstream}
-mkdir -p .claude/{commands,skills/swarm,skills/upstream}
-mkdir -p handoffs/{active,blocked,completed,archived}
-mkdir -p progress
+mkdir -p agents/shared agents/roles
+mkdir -p scripts/{hooks,validate,session,utils,repos}
+mkdir -p .claude/{commands,skills}
+mkdir -p notes
 mkdir -p docs/guides
 mkdir -p .devcontainer
 mkdir -p logs
-mkdir -p coordination
-mkdir -p swarm
+mkdir -p knowledge/{wiki,research}
+mkdir -p local
+mkdir -p repos
 mkdir -p secrets
 
 # --- Template substitution function ---
@@ -114,9 +108,11 @@ copy_and_sub() {
 # Core governance files
 copy_and_sub "CLAUDE.md" "CLAUDE.md"
 copy_and_sub "README.md" "README.md"
-copy_and_sub "SPEC.md" "SPEC.md"
 
 # Agent system
+for f in "${ARCHETYPE_DIR}"/agents/roles/*.md; do
+    [[ -f "$f" ]] && cp "$f" "agents/roles/$(basename "$f")"
+done
 for f in "${ARCHETYPE_DIR}"/agents/*.md; do
     [[ -f "$f" ]] && cp "$f" "agents/$(basename "$f")"
 done
@@ -140,12 +136,6 @@ for f in "${ARCHETYPE_DIR}"/scripts/session/*.sh; do
     [[ -f "$f" ]] && cp "$f" "scripts/session/$(basename "$f")" && chmod +x "scripts/session/$(basename "$f")"
 done
 
-# Nightshift
-for f in "${ARCHETYPE_DIR}"/scripts/nightshift/*.sh; do
-    [[ -f "$f" ]] && cp "$f" "scripts/nightshift/$(basename "$f")" && chmod +x "scripts/nightshift/$(basename "$f")"
-done
-copy_and_sub "nightshift.yaml" "nightshift.yaml" 2>/dev/null || true
-
 # Utils
 for f in "${ARCHETYPE_DIR}"/scripts/utils/*.sh; do
     [[ -f "$f" ]] && cp "$f" "scripts/utils/$(basename "$f")" && chmod +x "scripts/utils/$(basename "$f")"
@@ -156,37 +146,30 @@ for f in "${ARCHETYPE_DIR}"/scripts/repos/*.sh; do
     [[ -f "$f" ]] && cp "$f" "scripts/repos/$(basename "$f")" && chmod +x "scripts/repos/$(basename "$f")"
 done
 
-# Swarm coordination
-for f in "${ARCHETYPE_DIR}"/swarm/*.py "${ARCHETYPE_DIR}"/swarm/*.md; do
-    [[ -f "$f" ]] && cp "$f" "swarm/$(basename "$f")"
-done
-
 # Claude Code config
 copy_and_sub ".claude/settings.json" ".claude/settings.json" 2>/dev/null || true
 for f in "${ARCHETYPE_DIR}"/.claude/commands/*.md; do
     [[ -f "$f" ]] && cp "$f" ".claude/commands/$(basename "$f")"
 done
-for f in "${ARCHETYPE_DIR}"/.claude/skills/swarm/*; do
-    [[ -f "$f" ]] && cp "$f" ".claude/skills/swarm/$(basename "$f")"
-done
-for f in "${ARCHETYPE_DIR}"/.claude/skills/upstream/*; do
-    [[ -f "$f" ]] && cp "$f" ".claude/skills/upstream/$(basename "$f")"
-done
 
-# Project-wiki skill (KB governance: lint + query)
-if [[ -d "${ARCHETYPE_DIR}/.claude/skills/project-wiki" ]]; then
-    mkdir -p .claude/skills/project-wiki/{scripts,references}
-    for f in "${ARCHETYPE_DIR}"/.claude/skills/project-wiki/*; do
-        [[ -f "$f" ]] && cp "$f" ".claude/skills/project-wiki/$(basename "$f")"
+# Skills (copy all surviving skills)
+for skill_dir in "${ARCHETYPE_DIR}"/.claude/skills/*/; do
+    [[ -d "$skill_dir" ]] || continue
+    skill_name="$(basename "$skill_dir")"
+    mkdir -p ".claude/skills/${skill_name}"
+    for f in "${skill_dir}"*; do
+        [[ -f "$f" ]] && cp "$f" ".claude/skills/${skill_name}/$(basename "$f")"
     done
-    for f in "${ARCHETYPE_DIR}"/.claude/skills/project-wiki/scripts/*; do
-        [[ -f "$f" ]] && cp "$f" ".claude/skills/project-wiki/scripts/$(basename "$f")"
+    # Copy subdirectories (references/, scripts/, assets/)
+    for subdir in references scripts assets; do
+        if [[ -d "${skill_dir}${subdir}" ]]; then
+            mkdir -p ".claude/skills/${skill_name}/${subdir}"
+            for f in "${skill_dir}${subdir}/"*; do
+                [[ -f "$f" ]] && cp "$f" ".claude/skills/${skill_name}/${subdir}/$(basename "$f")"
+            done
+        fi
     done
-    for f in "${ARCHETYPE_DIR}"/.claude/skills/project-wiki/references/*; do
-        [[ -f "$f" ]] && cp "$f" ".claude/skills/project-wiki/references/$(basename "$f")"
-    done
-fi
-
+done
 
 # Hook library and policy hooks
 mkdir -p .claude/hooks/lib
@@ -197,39 +180,12 @@ for f in "${ARCHETYPE_DIR}"/.claude/hooks/lib/*; do
     [[ -f "$f" ]] && cp "$f" ".claude/hooks/lib/$(basename "$f")"
 done
 
-# Wiki structure (wiki.yaml + SCHEMA.md scaffold)
-if [[ -f "${ARCHETYPE_DIR}/_templates/wiki.yaml.template" ]]; then
-    mkdir -p wiki
-    cp "${ARCHETYPE_DIR}/_templates/wiki.yaml.template" "wiki.yaml"
-    substitute "wiki.yaml"
-    # Create minimal SCHEMA.md
-    cat > "wiki/SCHEMA.md" <<'WIKIEOF'
-# Wiki Schema — Living Taxonomy
-
-> Authoritative taxonomy for this project. Add categories and aliases as needed.
-> Updated: $(date +%Y-%m-%d)
-
-## Categories
-
-| Key | Label | Description |
-|-----|-------|-------------|
-| `general` | General | Default category for uncategorized entries |
-
-## Aliases
-
-| Alias | Maps To |
-|-------|---------|
-WIKIEOF
-fi
-
 # Secrets protection
 cp "${ARCHETYPE_DIR}/secrets/.secretpaths" "secrets/.secretpaths"
 touch "secrets/.gitkeep"
 
-# Sandbox settings template (user customizes)
-if [[ -f "${ARCHETYPE_DIR}/_templates/settings.local.json.template" ]]; then
-    cp "${ARCHETYPE_DIR}/_templates/settings.local.json.template" ".claude/settings.local.json"
-fi
+# Gitkeep files
+touch knowledge/wiki/.gitkeep knowledge/research/.gitkeep local/.gitkeep repos/.gitkeep
 
 # Devcontainer
 copy_and_sub ".devcontainer/devcontainer.json" ".devcontainer/devcontainer.json" 2>/dev/null || true
@@ -239,11 +195,6 @@ if [[ -f "${ARCHETYPE_DIR}/.claude/maintainers.json" ]]; then
     cp "${ARCHETYPE_DIR}/.claude/maintainers.json" ".claude/maintainers.json"
     substitute ".claude/maintainers.json"
 fi
-
-# Upstream contribution scripts
-for f in "${ARCHETYPE_DIR}"/scripts/upstream/*.sh; do
-    [[ -f "$f" ]] && cp "$f" "scripts/upstream/$(basename "$f")" && chmod +x "scripts/upstream/$(basename "$f")"
-done
 
 # --- Build repo map rows for CLAUDE.md ---
 REPO_MAP_ROWS=""
@@ -261,15 +212,6 @@ if [[ -n "$REPOS" ]]; then
 else
     sed -i '/{{REPO_MAP_ROWS}}/d' CLAUDE.md
 fi
-
-# --- Initialize dependency map ---
-cat > .claude/dependency-map.json << 'DEPEOF'
-{
-  "schema_version": 1,
-  "edges": [],
-  "repos": {}
-}
-DEPEOF
 
 # --- Register child repos ---
 if [[ -n "$REPOS" ]]; then
@@ -301,66 +243,23 @@ cat > .archetype-manifest.json << MANEOF
     "scripts/validate/",
     "scripts/utils/",
     "scripts/session/",
-    "scripts/nightshift/",
     "scripts/repos/",
-    "scripts/upstream/",
     "agents/shared/",
+    "agents/roles/",
     "agents/*.md",
-    "swarm/",
     ".claude/commands/",
     ".claude/skills/",
     "secrets/.secretpaths"
   ],
   "templated_files": [
     "CLAUDE.md",
-    "README.md",
-    "SPEC.md",
-    "nightshift.yaml"
+    "README.md"
   ]
 }
 MANEOF
 
 # --- Create .gitignore ---
-cat > .gitignore << 'GIEOF'
-# Logs
-logs/*.log
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Python
-__pycache__/
-*.pyc
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-
-# Swarm state (local to each machine)
-swarm/*.db
-swarm/*.db-wal
-swarm/*.db-shm
-
-# Session state (local, gitignored)
-.session-identity
-.session-stats
-.push-logs.lock
-
-# GitNexus indexes (rebuilt on demand)
-.gitnexus/
-AGENTS.md
-
-# Local settings
-.claude/settings.local.json
-
-# Secrets (directory tracked, contents ignored)
-secrets/*
-!secrets/.gitkeep
-!secrets/.secretpaths
-
-# Archetype upstream manifest (instance-local)
-.archetype-manifest.json
-GIEOF
+copy_and_sub ".gitignore" ".gitignore" 2>/dev/null || true
 
 # --- Post-init validation ---
 echo ""
@@ -368,8 +267,8 @@ echo "Running post-init validation..."
 VALIDATION_FAILED=0
 
 # Check required structure
-for d in agents agents/shared scripts/hooks scripts/validate scripts/session scripts/utils \
-         handoffs/active handoffs/completed .claude/commands .claude/skills swarm; do
+for d in agents agents/shared agents/roles scripts/hooks scripts/validate scripts/session scripts/utils \
+         notes .claude/commands .claude/skills; do
     if [[ ! -d "$d" ]]; then
         echo "  WARN: Missing directory: $d"
         VALIDATION_FAILED=1
@@ -412,8 +311,7 @@ echo ""
 echo "Next steps:"
 echo "  1. Review and customize CLAUDE.md"
 echo "  2. Configure hooks in .claude/settings.json"
-echo "  3. Add agent roles in agents/"
+echo "  3. Add agent roles in agents/roles/"
 echo "  4. Register child repos: scripts/repos/register-repo.sh <name> <path>"
-echo "  5. Index repos with GitNexus: npm install -g gitnexus && scripts/repos/sync-repos.sh --index"
-echo "  6. Install bubblewrap for sandbox: sudo apt install bubblewrap"
-echo "  7. Review secrets/.secretpaths and add project-specific protected paths"
+echo "  5. Install bubblewrap for sandbox: sudo apt install bubblewrap"
+echo "  6. Review secrets/.secretpaths and add project-specific protected paths"

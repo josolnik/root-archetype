@@ -84,7 +84,7 @@ USER_EMAIL="$(git config user.email 2>/dev/null || echo "")"
 
 IS_CORE=false
 case "$REL_PATH" in
-  .claude/*|CLAUDE.md|SPEC.md|scripts/*|docs/*)
+  .claude/*|CLAUDE.md|scripts/*|docs/*)
     IS_CORE=true
     ;;
 esac

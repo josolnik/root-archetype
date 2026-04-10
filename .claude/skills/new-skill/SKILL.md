@@ -40,11 +40,7 @@ When the user wants a new skill:
 
 6. If the skill overlaps with an existing skill, add a **When to Use What** decision matrix in both skills.
 
-7. (Optional) Create `tests/triggers.md` from the template at `_templates/skill/tests/triggers.md.template` with example prompts that should and should not activate the skill. This helps refine the description field over time.
-
-## Template location
-
-The canonical template is at `_templates/skill/SKILL.md.template`. Read it for the skeleton structure, then customize for the specific skill.
+7. (Optional) Create `tests/triggers.md` with example prompts that should and should not activate the skill. This helps refine the description field over time.
 
 ## Description field reference
 

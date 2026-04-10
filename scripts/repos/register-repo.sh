@@ -30,7 +30,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 ROOT_DIR="$(git rev-parse --show-toplevel 2>/dev/null || echo "$(cd "$(dirname "$0")/../.." && pwd)")"
-DEP_MAP="${ROOT_DIR}/.claude/dependency-map.json"
+REPOS_DIR="${ROOT_DIR}/repos"
 
 # Source logging if available
 if [[ -f "${ROOT_DIR}/scripts/utils/agent_log.sh" ]]; then
@@ -46,18 +46,14 @@ if [[ ! -d "$REPO_PATH" ]]; then
     echo "WARNING: Path ${REPO_PATH} does not exist yet. Registering anyway."
 fi
 
-# --- Update dependency map ---
-if [[ ! -f "$DEP_MAP" ]]; then
-    echo '{"schema_version": 1, "edges": [], "repos": {}}' > "$DEP_MAP"
+# --- Create symlink in repos/ ---
+mkdir -p "$REPOS_DIR"
+if [[ -L "${REPOS_DIR}/${REPO_NAME}" ]]; then
+    echo "Symlink already exists, updating..."
+    rm "${REPOS_DIR}/${REPO_NAME}"
 fi
-
-# Add repo to dependency map
-TMP=$(mktemp)
-jq --arg name "$REPO_NAME" --arg path "$REPO_PATH" --arg purpose "${PURPOSE:-}" \
-    '.repos[$name] = {path: $path, purpose: $purpose, registered_at: now}' \
-    "$DEP_MAP" > "$TMP" && mv "$TMP" "$DEP_MAP"
-
-echo "Added to dependency map."
+ln -s "$REPO_PATH" "${REPOS_DIR}/${REPO_NAME}"
+echo "Linked: repos/${REPO_NAME} → ${REPO_PATH}"
 
 # --- Seed agent files if missing ---
 if [[ -d "$REPO_PATH" ]]; then
@@ -94,7 +90,6 @@ SETTINGS_EOF
     # Seed agents directory if missing
     if [[ ! -d "${REPO_PATH}/agents" ]]; then
         mkdir -p "${REPO_PATH}/agents"
-        # Create a minimal example role file
         cat > "${REPO_PATH}/agents/developer.md" << AGENT_EOF
 # Developer
 

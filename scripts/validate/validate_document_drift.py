@@ -16,15 +16,14 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 REQUIRED_DIRS = [
     "agents",
     "agents/shared",
+    "agents/roles",
     "scripts/hooks",
     "scripts/validate",
     "scripts/session",
     "scripts/utils",
-    "handoffs/active",
-    "handoffs/completed",
+    "notes",
     ".claude/commands",
     ".claude/skills",
-    "swarm",
 ]
 
 # Files that should always exist
@@ -43,25 +42,6 @@ def check_required_structure() -> list[str]:
     for f in REQUIRED_FILES:
         if not (REPO_ROOT / f).is_file():
             errors.append(f"Required file missing: {f}")
-    return errors
-
-
-def check_dependency_map() -> list[str]:
-    """Validate dependency-map.json structure if it exists."""
-    dep_map = REPO_ROOT / ".claude" / "dependency-map.json"
-    if not dep_map.exists():
-        return []
-    errors = []
-    try:
-        data = json.loads(dep_map.read_text())
-        if "schema_version" not in data:
-            errors.append("dependency-map.json: missing 'schema_version'")
-        if "edges" not in data:
-            errors.append("dependency-map.json: missing 'edges'")
-        if not isinstance(data.get("edges", None), list):
-            errors.append("dependency-map.json: 'edges' must be a list")
-    except (json.JSONDecodeError, KeyError) as e:
-        errors.append(f"dependency-map.json: invalid JSON — {e}")
     return errors
 
 
@@ -124,7 +104,6 @@ def check_settings_hooks_exist() -> list[str]:
 def validate() -> bool:
     all_errors = []
     all_errors.extend(check_required_structure())
-    all_errors.extend(check_dependency_map())
     all_errors.extend(check_handoff_status_consistency())
     all_errors.extend(check_settings_hooks_exist())
 

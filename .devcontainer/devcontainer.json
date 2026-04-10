@@ -5,7 +5,7 @@
     "ghcr.io/devcontainers/features/node:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
-  "postCreateCommand": "pip install pytest pyyaml && npm install -g gitnexus 2>/dev/null || true",
+  "postCreateCommand": "pip install pytest pyyaml",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -14,7 +14,7 @@
       ],
       "settings": {
         "python.testing.pytestEnabled": true,
-        "python.testing.pytestArgs": ["swarm/"]
+        "python.testing.pytestArgs": ["scripts/"]
       }
     }
   },

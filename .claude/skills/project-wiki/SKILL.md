@@ -11,7 +11,7 @@ Use when:
 
 - Auditing knowledge base health (orphan handoffs, stale entries, contradictions)
 - Asking "what do we know about X?" and getting compiled answers with citations
-- Checking governance hygiene before handoff reviews or nightshift runs
+- Checking governance hygiene before handoff reviews
 - Verifying that all intake entries have been actioned
 
 Do not use when:
@@ -24,7 +24,6 @@ Do not use when:
 
 Reads `wiki.yaml` at repo root for paths, thresholds, and enabled lint passes.
 Falls back to sensible defaults if `wiki.yaml` is not present.
-See `_templates/wiki.yaml.template` for the config schema.
 
 ## Operations
 

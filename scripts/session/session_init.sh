@@ -15,8 +15,7 @@ echo "=== Session Init: $(basename "$REPO_ROOT") ==="
 # --- Verify required directories ---
 REQUIRED_DIRS=(
     "${REPO_ROOT}/logs"
-    "${REPO_ROOT}/handoffs/active"
-    "${REPO_ROOT}/progress"
+    "${REPO_ROOT}/notes"
 )
 
 for dir in "${REQUIRED_DIRS[@]}"; do
@@ -26,18 +25,8 @@ for dir in "${REQUIRED_DIRS[@]}"; do
     fi
 done
 
-# --- Check for registered child repos ---
-DEP_MAP="${REPO_ROOT}/.claude/dependency-map.json"
-if [[ -f "$DEP_MAP" ]]; then
-    REPO_COUNT=$(jq '.repos | length' "$DEP_MAP" 2>/dev/null || echo 0)
-    echo "Registered repos: ${REPO_COUNT}"
-    if [[ "$REPO_COUNT" -gt 0 ]]; then
-        jq -r '.repos | to_entries[] | "  \(.key): \(.value.path)"' "$DEP_MAP" 2>/dev/null || true
-    fi
-fi
-
 # --- Check active handoffs ---
-ACTIVE_COUNT=$(find "${REPO_ROOT}/handoffs/active" -name "*.md" 2>/dev/null | wc -l)
+ACTIVE_COUNT=$(find "${REPO_ROOT}/notes" -path "*/handoffs/*.md" -not -path "*/completed/*" -not -name "INDEX.md" 2>/dev/null | wc -l)
 echo "Active handoffs: ${ACTIVE_COUNT}"
 
 # --- Health summary ---

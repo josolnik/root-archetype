@@ -28,12 +28,12 @@ The `description` field is a trigger specification, not a summary. Formula:
 
 Good:
 ```yaml
-description: Launch and manage multi-agent swarm coordination for parallel work. Use when user mentions "swarm", "parallel agents", "workers", "work queue", or asks to coordinate multiple agents on a task. Do NOT use for general concurrency questions.
+description: Commit changes with staged-diff secret scanning and branch protection guardrails. Use when user says "safe commit", "safe-commit", or "commit with checks". Do NOT use for regular commits.
 ```
 
 Bad:
 ```yaml
-description: Helps with swarm stuff.
+description: Helps with commits.
 ```
 
 See `.claude/skills/new-skill/references/description-guide.md` for more examples.
@@ -50,7 +50,7 @@ Every skill is a folder, not a file:
 └── assets/               # Optional. Templates, example outputs
 ```
 
-Use the `new-skill` skill or copy from `_templates/skill/` to scaffold correctly.
+Use the `new-skill` skill to scaffold correctly.
 
 ## The Gotchas Section
 
@@ -133,7 +133,7 @@ It checks frontmatter, naming, description quality, gotchas presence, and struct
 
 Use the `new-skill` skill: just say "create a new skill" and follow the prompts. Or manually:
 
-1. Copy `_templates/skill/` to `.claude/skills/<name>/`
-2. Rename `SKILL.md.template` to `SKILL.md`
-3. Fill in frontmatter and content
+1. Create `.claude/skills/<name>/SKILL.md`
+2. Add YAML frontmatter with name, description
+3. Write instructions and gotchas
 4. Run the validator

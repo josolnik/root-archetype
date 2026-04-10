@@ -5,7 +5,7 @@ set -euo pipefail
 # Usage: scan-agents.sh [--output registry.json]
 
 ROOT_DIR="$(git rev-parse --show-toplevel 2>/dev/null || echo "$(cd "$(dirname "$0")/../.." && pwd)")"
-DEP_MAP="${ROOT_DIR}/.claude/dependency-map.json"
+REPOS_DIR="${ROOT_DIR}/repos"
 OUTPUT="${ROOT_DIR}/agents/registry.json"
 
 while [[ $# -gt 0 ]]; do
@@ -17,11 +17,6 @@ done
 
 echo "=== Agent Registry Scan ==="
 
-if [[ ! -f "$DEP_MAP" ]]; then
-    echo "No dependency map found. Register repos first."
-    exit 1
-fi
-
 # Start building registry
 REGISTRY='{"scan_timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'", "agents": []}'
 
@@ -29,51 +24,57 @@ scan_repo() {
     local repo_name="$1"
     local repo_path="$2"
 
-    if [[ ! -d "${repo_path}/agents" ]]; then
-        return
-    fi
+    # Scan roles/ subdirectory if it exists, otherwise scan agents/ directly
+    local agent_dirs=("${repo_path}/agents/roles" "${repo_path}/agents")
 
-    for agent_file in "${repo_path}/agents/"*.md; do
-        [[ -f "$agent_file" ]] || continue
-        local basename
-        basename=$(basename "$agent_file" .md)
+    for agent_dir in "${agent_dirs[@]}"; do
+        [[ -d "$agent_dir" ]] || continue
+        for agent_file in "${agent_dir}/"*.md; do
+            [[ -f "$agent_file" ]] || continue
+            local basename
+            basename=$(basename "$agent_file" .md)
 
-        # Skip non-role files
-        [[ "$basename" == "README" ]] && continue
-        [[ "$basename" == "AGENT_INSTRUCTIONS" ]] && continue
+            # Skip non-role files
+            [[ "$basename" == "README" ]] && continue
+            [[ "$basename" == "AGENT_INSTRUCTIONS" ]] && continue
 
-        # Extract mission line
-        local mission=""
-        mission=$(grep -m1 "^## Mission" -A2 "$agent_file" 2>/dev/null | tail -1 | sed 's/^ *//' || echo "")
+            # Extract mission line
+            local mission=""
+            mission=$(grep -m1 "^## Mission" -A2 "$agent_file" 2>/dev/null | tail -1 | sed 's/^ *//' || echo "")
 
-        # Check for required sections
-        local sections=0
-        for section in "## Mission" "## Use This Role When" "## Inputs Required" "## Outputs" "## Workflow" "## Guardrails"; do
-            if grep -q "^${section}" "$agent_file" 2>/dev/null; then
-                ((sections++))
-            fi
+            # Check for required sections
+            local sections=0
+            for section in "## Mission" "## Use This Role When" "## Inputs Required" "## Outputs" "## Workflow" "## Guardrails"; do
+                if grep -q "^${section}" "$agent_file" 2>/dev/null; then
+                    ((sections++))
+                fi
+            done
+            local valid=$( [[ $sections -eq 6 ]] && echo "true" || echo "false" )
+
+            REGISTRY=$(echo "$REGISTRY" | jq \
+                --arg name "$basename" \
+                --arg repo "$repo_name" \
+                --arg path "$agent_file" \
+                --arg mission "$mission" \
+                --argjson valid "$valid" \
+                '.agents += [{"name": $name, "repo": $repo, "path": $path, "mission": $mission, "schema_valid": $valid}]')
         done
-        local valid=$( [[ $sections -eq 6 ]] && echo "true" || echo "false" )
-
-        REGISTRY=$(echo "$REGISTRY" | jq \
-            --arg name "$basename" \
-            --arg repo "$repo_name" \
-            --arg path "$agent_file" \
-            --arg mission "$mission" \
-            --argjson valid "$valid" \
-            '.agents += [{"name": $name, "repo": $repo, "path": $path, "mission": $mission, "schema_valid": $valid}]')
+        # Only scan first matching directory per repo
+        break
     done
 }
 
 # Scan root repo agents
 scan_repo "$(basename "$ROOT_DIR")" "$ROOT_DIR"
 
-# Scan registered child repos
-jq -r '.repos | to_entries[] | "\(.key)|\(.value.path)"' "$DEP_MAP" 2>/dev/null | while IFS='|' read -r name path; do
-    if [[ -d "$path" ]]; then
-        scan_repo "$name" "$path"
-    fi
-done
+# Scan registered child repos (symlinks in repos/)
+if [[ -d "$REPOS_DIR" ]]; then
+    for repo_link in "$REPOS_DIR"/*/; do
+        [[ -d "$repo_link" ]] || continue
+        name="$(basename "$repo_link")"
+        scan_repo "$name" "$repo_link"
+    done
+fi
 
 # Write registry
 echo "$REGISTRY" | jq '.' > "$OUTPUT"

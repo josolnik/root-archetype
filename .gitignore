@@ -12,19 +12,18 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 
-# Swarm state (local to each machine)
-swarm/*.db
-swarm/*.db-wal
-swarm/*.db-shm
-
 # Session state (local, gitignored)
 .session-identity
 .session-stats
 .push-logs.lock
 
-# GitNexus indexes (rebuilt on demand)
-.gitnexus/
-AGENTS.md
+# Local instance data (not shared)
+local/*
+!local/.gitkeep
+!local/README.md
+
+# Knowledge research compile cache
+knowledge/research/.last_compile
 
 # Secrets (directory tracked, contents ignored)
 secrets/*

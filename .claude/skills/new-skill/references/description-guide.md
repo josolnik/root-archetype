@@ -11,11 +11,11 @@ The `description` field in YAML frontmatter is the single most important line in
 ## Good examples
 
 ```yaml
-description: Launch and manage multi-agent swarm coordination for parallel work. Use when user mentions "swarm", "parallel agents", "workers", "work queue", or asks to coordinate multiple agents on a task. Do NOT use for general concurrency questions unrelated to this project's swarm primitive.
+description: Commit changes with staged-diff secret scanning and branch protection guardrails. Use when user says "safe commit", "safe-commit", or "commit with checks". Do NOT use for regular commits — this is an opt-in extra layer on top of normal git workflow.
 ```
 
 ```yaml
-description: Discover and install agent skills from the open ecosystem. Use when user asks "how do I do X", "find a skill for X", "is there a skill that can...", or expresses interest in extending capabilities. Do NOT use when user asks about already-installed skills.
+description: Scaffold a new Claude Code skill with correct folder structure, YAML frontmatter, gotchas section, and progressive disclosure. Use when user says "create a skill", "new skill", "scaffold skill", "add a skill". Do NOT use when user wants to edit an existing skill.
 ```
 
 ```yaml

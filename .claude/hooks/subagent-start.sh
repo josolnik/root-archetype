@@ -32,13 +32,7 @@ if [[ -f "$REGISTRY" ]]; then
   ' "$REGISTRY" 2>/dev/null || echo "")"
 
   if [[ -n "$SOURCE_REPO" ]]; then
-    # Find repo path from dependency map
-    DEP_MAP="$PROJECT_DIR/.claude/dependency-map.json"
-    REPO_PATH=""
-    if [[ -f "$DEP_MAP" ]]; then
-      REPO_PATH="$(jq -r --arg repo "$SOURCE_REPO" '.repos[$repo].path // empty' "$DEP_MAP" 2>/dev/null || echo "")"
-    fi
-    [[ -z "$REPO_PATH" ]] && REPO_PATH="$PROJECT_DIR/repos/$SOURCE_REPO"
+    REPO_PATH="$PROJECT_DIR/repos/$SOURCE_REPO"
 
     REPO_CLAUDE_MD="$REPO_PATH/CLAUDE.md"
     if [[ -f "$REPO_CLAUDE_MD" ]]; then

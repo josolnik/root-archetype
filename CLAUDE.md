@@ -8,12 +8,8 @@ Umbrella repository for cross-repo coordination and governance. No application c
 
 | Repo | Path | Purpose |
 |------|------|---------|
-| {{PROJECT_NAME}} (this) | `{{PROJECT_ROOT}}` | Governance, agents, hooks, handoffs, progress, swarm coordination |
+| {{PROJECT_NAME}} (this) | `{{PROJECT_ROOT}}` | Governance, agents, hooks, notes, knowledge |
 {{REPO_MAP_ROWS}}
-
-## Dependency Map
-
-See `.claude/dependency-map.json` for formal coupling edges between repos.
 
 ## Governance Infrastructure
 
@@ -42,51 +38,29 @@ Convention for sensitive data that must never be read by AI agents:
 ### Agent System (`agents/`)
 Thin-map architecture:
 - `shared/` — Cross-cutting policy (operating constraints, engineering standards, workflows)
-- Role overlays — Per-agent specialization files (6-section schema)
-
-### Swarm Coordination (`swarm/`)
-SQLite-backed agent coordination with priority scheduling:
-- Agent registration + heartbeat
-- Work queue with information-gain-aware priority scoring
-- Message board (channels + threaded posts)
-- Resource locks with TTL
-- Experiment scheduler
+- `roles/` — Per-agent specialization files (6-section schema)
 
 ### Skills (`.claude/skills/`)
 Reusable skill definitions for common workflows:
-- Swarm coordination (`swarm/`)
-- Upstream contribution (`upstream/`)
 - Code simplification review (`simplify/`)
 - Skill scaffolding (`new-skill/`)
 - Handoff creation (`new-handoff/`)
 - Safe commit with secret scanning (`safe-commit/`)
-- Skill discovery (`find-skills/`)
 - Project wiki maintenance (`project-wiki/`)
 
 ### Commands (`.claude/commands/`)
 Slash command definitions for Claude Code sessions:
-- `/swarm` — Swarm coordination operations (`swarm.md`)
-- `/upstream` — Contribute instance changes back to archetype (`upstream.md`)
 - `/simplify` — Review changed code for reuse, quality, and efficiency (`simplify.md`)
 
+## Notes & Handoffs
 
-### Templates (`_templates/`)
-Scaffolding for new projects and skills:
-- `_templates/skill/` — Skill structure template and reference docs
-- `_templates/hooks/` — Hook templates (PostStop verification gate)
-- `_templates/cli-wrappers/` — CLI wrapper templates (GitHub CLI)
-- `_templates/wiki.yaml.template` — Wiki configuration template
-
-## Handoff Workflow
-
-- `handoffs/active/` — In-progress work
-- `handoffs/blocked/` — Waiting on dependencies
-- `handoffs/completed/` — Done
-- `handoffs/archived/` — Historical reference
+- `notes/<user>/handoffs/` — Active work items per user
+- `notes/<user>/handoffs/completed/` — Completed handoffs
+- `notes/handoffs/INDEX.md` — Aggregation index
 
 ## Progress Tracking
 
-Daily progress in `progress/YYYY-MM/YYYY-MM-DD.md`.
+Daily progress in `logs/progress/<user>/YYYY-MM/YYYY-MM-DD.md`.
 
 ## Agent Logging
 
@@ -109,47 +83,6 @@ Audit trail in `logs/agent_audit.log`. Analysis: `scripts/utils/agent_log_analyz
 - `scripts/repos/register-repo.sh` — Register child repo, seed agent files if missing
 - `scripts/repos/scan-agents.sh` — Discover agents across all registered repos
 - `scripts/repos/sync-repos.sh` — Pull all registered repos, rebuild indexes
-
-## Codebase Intelligence (GitNexus)
-
-This project uses [GitNexus](https://github.com/abhigyanpatwari/GitNexus) for structural codebase awareness across all registered repos. GitNexus builds a knowledge graph (symbols, call edges, clusters, execution flows) from source code and exposes it via CLI tools and MCP.
-
-### Setup
-
-```bash
-npm install -g gitnexus       # One-time global install
-gitnexus analyze .             # Index this repo
-scripts/repos/sync-repos.sh   # Indexes all child repos automatically
-```
-
-### Usage
-
-Before modifying code, query the graph:
-
-| Command | Purpose |
-|---------|---------|
-| `gitnexus context <symbol>` | 360-degree view: callers, callees, processes |
-| `gitnexus impact <symbol>` | Blast radius: what breaks if you change this |
-| `gitnexus query "<concept>"` | Find execution flows by concept |
-| `gitnexus list` | Show all indexed repos |
-
-### Cross-Repo Awareness
-
-All registered child repos are indexed into a shared global registry (`~/.gitnexus/registry.json`). Use `--repo <name>` to target a specific repo:
-
-```bash
-gitnexus context --repo my-app validateUser
-gitnexus impact --repo my-lib parseConfig
-```
-
-### Re-indexing
-
-Indexes go stale when code changes. Re-index after significant work:
-
-```bash
-gitnexus analyze .                    # This repo only
-scripts/repos/sync-repos.sh --index  # All child repos
-```
 
 ## Code Style
 

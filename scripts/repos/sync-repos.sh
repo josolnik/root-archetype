@@ -2,81 +2,56 @@
 set -euo pipefail
 
 # Sync all registered repos — pull latest, rebuild indexes
-# Usage: sync-repos.sh [--pull] [--index]
+# Usage: sync-repos.sh [--pull]
 
 ROOT_DIR="$(git rev-parse --show-toplevel 2>/dev/null || echo "$(cd "$(dirname "$0")/../.." && pwd)")"
-DEP_MAP="${ROOT_DIR}/.claude/dependency-map.json"
+REPOS_DIR="${ROOT_DIR}/repos"
 
 PULL=false
-INDEX=false
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --pull) PULL=true; shift ;;
-        --index) INDEX=true; shift ;;
         *) shift ;;
     esac
 done
 
 echo "=== Sync Registered Repos ==="
 
-if [[ ! -f "$DEP_MAP" ]]; then
-    echo "No dependency map found."
-    exit 1
-fi
-
-REPOS=$(jq -r '.repos | to_entries[] | "\(.key)|\(.value.path)"' "$DEP_MAP" 2>/dev/null)
-
-if [[ -z "$REPOS" ]]; then
-    echo "No repos registered."
+if [[ ! -d "$REPOS_DIR" ]]; then
+    echo "No repos directory found."
     exit 0
 fi
 
 SYNCED=0
 FAILED=0
 
-while IFS='|' read -r name path; do
+for repo_path in "$REPOS_DIR"/*/; do
+    [[ -d "$repo_path" ]] || continue
+    name="$(basename "$repo_path")"
+
     echo ""
-    echo "--- ${name}: ${path} ---"
+    echo "--- ${name}: ${repo_path} ---"
 
-    if [[ ! -d "$path" ]]; then
-        echo "  SKIP: Path does not exist"
-        ((FAILED++))
-        continue
-    fi
-
-    if [[ ! -d "${path}/.git" ]]; then
+    if [[ ! -d "${repo_path}/.git" ]]; then
         echo "  SKIP: Not a git repository"
         ((FAILED++))
         continue
     fi
 
     # Check status
-    BRANCH=$(git -C "$path" branch --show-current 2>/dev/null || echo "unknown")
-    CLEAN=$(git -C "$path" status --porcelain 2>/dev/null | wc -l)
+    BRANCH=$(git -C "$repo_path" branch --show-current 2>/dev/null || echo "unknown")
+    CLEAN=$(git -C "$repo_path" status --porcelain 2>/dev/null | wc -l)
     echo "  Branch: ${BRANCH}"
     echo "  Uncommitted changes: ${CLEAN}"
 
     # Pull if requested
     if [[ "$PULL" == "true" && "$CLEAN" -eq 0 ]]; then
         echo "  Pulling..."
-        git -C "$path" pull --rebase 2>&1 | sed 's/^/  /' || echo "  Pull failed (non-critical)"
-    fi
-
-    # GitNexus indexing
-    if [[ "$INDEX" == "true" ]] && command -v gitnexus &>/dev/null; then
-        echo "  Indexing with GitNexus..."
-        gitnexus analyze "$path" 2>&1 | tail -3 | sed 's/^/  /' || echo "  GitNexus indexing failed (non-critical)"
+        git -C "$repo_path" pull --rebase 2>&1 | sed 's/^/  /' || echo "  Pull failed (non-critical)"
     fi
 
     ((SYNCED++))
-done <<< "$REPOS"
-
-# Index the root repo too
-if [[ "$INDEX" == "true" ]] && command -v gitnexus &>/dev/null; then
-    echo ""
-    echo "--- Indexing root repo: ${ROOT_DIR} ---"
-    gitnexus analyze "$ROOT_DIR" 2>&1 | tail -3 | sed 's/^/  /' || echo "  GitNexus indexing failed (non-critical)"
-fi
+done
 
 echo ""
 echo "Synced: ${SYNCED}, Failed: ${FAILED}"

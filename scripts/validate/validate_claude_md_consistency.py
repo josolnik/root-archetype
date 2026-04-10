@@ -61,13 +61,16 @@ def check_referenced_paths(claude_md: str) -> list[str]:
         # Skip template variables
         if "{{" in ref:
             continue
+        # Skip placeholder paths (e.g. <user>)
+        if "<" in ref:
+            continue
         # Skip command examples and inline code
         if " " in ref:
             continue
         # Skip YYYY-MM patterns
         if "YYYY" in ref:
             continue
-        # Skip home-dir paths (e.g. ~/.gitnexus/)
+        # Skip home-dir paths
         if ref.startswith("~"):
             continue
         # Skip basenames resolvable under section context
