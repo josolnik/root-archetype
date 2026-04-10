@@ -50,7 +50,7 @@ Present menu of available hooks:
 | pre-edit-guard.sh | OFF | Edit policy enforcement |
 | correction-detection.sh | OFF | User correction learning |
 
-Wire selected hooks into `.claude/settings.json`.
+Wire selected hooks into `.claude/settings.json` (generated file — changes persist locally, not tracked in git).
 
 ### Step e: Knowledge setup
 

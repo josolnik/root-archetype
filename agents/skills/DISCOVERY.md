@@ -14,6 +14,6 @@ Catalog of all available skills with trigger conditions.
 
 ## Engine-Specific Discovery
 
-- **Claude Code**: `.claude/skills/{name}/SKILL.md` thin wrappers (frontmatter + reference to engine-neutral content)
-- **Codex**: Read `agents/skills/` directly
+- **Claude Code**: `.claude/skills/{name}/SKILL.md` thin wrappers are auto-generated at init time from `agents/skills/` frontmatter. Regenerate with: `bash scripts/utils/generate-engine.sh --engine claude`
+- **Codex**: Read `agents/skills/` directly (no wrapper layer)
 - **Other engines**: Read this file for the catalog, then load skill content from the paths above

@@ -126,7 +126,9 @@ def validate_skill(skill_dir):
 def main():
     if not SKILLS_DIR.exists():
         print(f"Skills directory not found: {SKILLS_DIR}")
-        sys.exit(1)
+        print("  (This is expected if the engine adapter has not been generated.)")
+        print("  Run: bash scripts/utils/generate-engine.sh --engine claude")
+        sys.exit(0)
 
     skill_dirs = sorted(
         d for d in SKILLS_DIR.iterdir()

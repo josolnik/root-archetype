@@ -2,17 +2,18 @@
 set -euo pipefail
 
 # Root-Archetype Project Initializer
-# Usage: ./init-project.sh <project-name> <target-path> [--guided] [--repos "n:p,..."] [--email "x"]
+# Usage: ./init-project.sh <project-name> <target-path> [--engine claude|codex] [--guided] [--repos "n:p,..."] [--email "x"]
 
 usage() {
     echo "Usage: $0 <project-name> <target-path> [options]"
     echo ""
     echo "Options:"
+    echo "  --engine   Reasoning engine to configure (claude, codex; default: claude)"
     echo "  --guided   Drop .needs-init marker for interactive wizard"
     echo "  --repos    Comma-separated child repos (name:path pairs)"
     echo "  --email    Maintainer email"
     echo ""
-    echo "Example: $0 my-project /tmp/test --repos \"app:/tmp/app\" --email \"dev@co.com\""
+    echo "Example: $0 my-project /tmp/test --engine claude --repos \"app:/tmp/app\" --email \"dev@co.com\""
     exit 1
 }
 
@@ -22,9 +23,10 @@ PROJECT_NAME="$1"
 PROJECT_ROOT="$2"
 shift 2
 
-REPOS="" MAINTAINER_EMAIL="" GUIDED=false
+REPOS="" MAINTAINER_EMAIL="" GUIDED=false ENGINE="claude"
 while [[ $# -gt 0 ]]; do
     case "$1" in
+        --engine) ENGINE="$2"; shift 2 ;;
         --guided) GUIDED=true; shift ;;
         --repos) REPOS="$2"; shift 2 ;;
         --email) MAINTAINER_EMAIL="$2"; shift 2 ;;
@@ -33,6 +35,13 @@ while [[ $# -gt 0 ]]; do
 done
 
 ARCHETYPE_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# Validate engine
+if [[ ! -d "${ARCHETYPE_DIR}/agents/engines/${ENGINE}" ]]; then
+    echo "Error: Unknown engine '${ENGINE}'. Available engines:"
+    ls -1 "${ARCHETYPE_DIR}/agents/engines" | grep -v README
+    exit 1
+fi
 
 echo "=== Root-Archetype Project Initializer ==="
 echo "Project: ${PROJECT_NAME} | Root: ${PROJECT_ROOT} | Mode: $([[ $GUIDED == true ]] && echo guided || echo quick)"
@@ -73,11 +82,11 @@ copy_sub() {
 }
 
 # --- Create directory structure ---
-mkdir -p agents/{shared,roles,skills} scripts/{hooks,validate,session,utils,repos} \
-         .claude/skills notes knowledge/{wiki,research/deep-dives} logs local repos secrets .devcontainer
+mkdir -p agents/{shared,roles,skills,engines} scripts/{hooks,validate,session,utils,repos} \
+         notes knowledge/{wiki,research/deep-dives} logs local repos secrets .devcontainer
 
-# --- Copy core governance files ---
-for f in AGENT.md CLAUDE.md CODEX.md README.md MAINTAINERS.json .gitignore; do
+# --- Copy core governance files (engine-neutral only) ---
+for f in AGENT.md README.md MAINTAINERS.json .gitignore; do
     copy_sub "$f" "$f"
 done
 
@@ -93,9 +102,11 @@ copy_tree "${ARCHETYPE_DIR}/scripts/repos" scripts/repos
 chmod +x scripts/hooks/*.sh scripts/validate/*.py scripts/session/*.sh \
          scripts/utils/*.sh scripts/repos/*.sh 2>/dev/null || true
 
-# --- Copy Claude Code config ---
-copy_sub ".claude/settings.json" ".claude/settings.json"
-copy_tree "${ARCHETYPE_DIR}/.claude/skills" .claude/skills
+# --- Copy engine templates (blueprints, tracked in git) ---
+copy_tree "${ARCHETYPE_DIR}/agents/engines" agents/engines
+
+# --- Generate engine adapter files (local, gitignored) ---
+bash scripts/utils/generate-engine.sh --engine "$ENGINE" --project-dir "$(pwd)"
 
 # --- Copy supporting files ---
 copy_sub ".devcontainer/devcontainer.json" ".devcontainer/devcontainer.json"
@@ -128,6 +139,7 @@ fi
 # --- Write archetype manifest ---
 cat > .archetype-manifest.json << MANEOF
 {
+  "engine": "${ENGINE}",
   "archetype_origin": "${ARCHETYPE_DIR}",
   "archetype_version": "$(cd "${ARCHETYPE_DIR}" && git rev-parse HEAD 2>/dev/null || echo unknown)",
   "init_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
@@ -157,14 +169,26 @@ fi
 # --- Post-init validation ---
 echo ""
 WARN=0
-for d in agents scripts/hooks .claude/skills; do
+for d in agents agents/engines scripts/hooks; do
     [[ -d "$d" ]] || { echo "  WARN: Missing $d"; WARN=1; }
 done
-for f in AGENT.md CLAUDE.md .claude/settings.json MAINTAINERS.json; do
+for f in AGENT.md MAINTAINERS.json; do
     [[ -f "$f" ]] || { echo "  WARN: Missing $f"; WARN=1; }
 done
+# Engine-specific validation
+case "$ENGINE" in
+    claude)
+        for f in CLAUDE.md .claude/settings.json; do
+            [[ -f "$f" ]] || { echo "  WARN: Missing $f (engine: claude)"; WARN=1; }
+        done
+        [[ -d ".claude/skills" ]] || { echo "  WARN: Missing .claude/skills/ (engine: claude)"; WARN=1; }
+        ;;
+    codex)
+        [[ -f "CODEX.md" ]] || { echo "  WARN: Missing CODEX.md (engine: codex)"; WARN=1; }
+        ;;
+esac
 [[ $WARN -eq 0 ]] && echo "Validation passed." || echo "Validation completed with warnings."
 
 echo ""
-echo "=== Project initialized: ${PROJECT_NAME} ==="
+echo "=== Project initialized: ${PROJECT_NAME} (engine: ${ENGINE}) ==="
 echo "Next: review AGENT.md, configure hooks, register child repos."

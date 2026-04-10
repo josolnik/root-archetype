@@ -13,14 +13,15 @@ When the user wants a new skill:
 
 1. Ask for the skill **name** (kebab-case, e.g. `deploy-check`) and a one-sentence **purpose** if not already clear from context.
 
-2. Create the skill directory and files by copying from the template:
+2. Create the skill directory and files in the engine-neutral location:
    ```
-   .claude/skills/<name>/
+   agents/skills/<name>/
    ├── SKILL.md
    ├── references/
    ├── scripts/
    └── assets/       (only if needed)
    ```
+   Then regenerate engine wrappers: `bash scripts/utils/generate-engine.sh --engine claude`
 
 3. Write the SKILL.md with proper YAML frontmatter. The **description** field is critical — it's not a summary, it's a trigger specification. Follow this formula:
    ```

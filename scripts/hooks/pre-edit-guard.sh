@@ -83,6 +83,7 @@ REL_PATH="${FILE_PATH#$PROJECT_DIR/}"
 USER_EMAIL="$(git config user.email 2>/dev/null || echo "")"
 
 IS_CORE=false
+# .claude/* and CLAUDE.md are generated (gitignored) but still protected at runtime
 case "$REL_PATH" in
   .claude/*|CLAUDE.md|scripts/*|docs/*)
     IS_CORE=true

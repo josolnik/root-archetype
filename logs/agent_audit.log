@@ -111,3 +111,13 @@
 [2026-04-10T22:49:00Z] TASK_START desc="Handoff 07 — Documentation" reason="Sequential implementation"
 [2026-04-10T22:50:00Z] TASK_END desc="Handoff 07 complete" result="success" detail="Zero stale refs in tracked files"
 [2026-04-10T22:50:30Z] SESSION_END user=pestopoppa detail="All 7 handoffs complete, all validators pass"
+{"ts":"2026-04-10T23:13:36Z","session":"ses_20260409_152243_2712810","level":"INFO","cat":"SESSION_END","msg":"Session ended for pestopoppa","details":""}
+{"ts":"2026-04-10T23:13:38Z","session":"ses_20260410_231338_17211","level":"INFO","cat":"SESSION_START","msg":"Session started by pestopoppa on branch session/c1fb5027-811_2026-04-10","details":""}
+[2026-04-10T23:30:00Z] TASK_START desc="Engine-neutral adapter restructuring" reason="Repo tracked .claude/ and engine docs in git, violating engine-neutral-at-rest policy"
+[2026-04-10T23:31:00Z] TASK_END desc="Phase 1: Created agents/engines/ template directory" result="success" detail="claude (4 files) + codex (2 files) + README"
+[2026-04-10T23:32:00Z] TASK_END desc="Phase 2: Created scripts/utils/generate-engine.sh" result="success" detail="Auto-generates CLAUDE.md, .claude/settings.json, .claude/commands/, .claude/skills/ wrappers from agents/skills/ frontmatter"
+[2026-04-10T23:33:00Z] TASK_END desc="Phase 3: Updated init-project.sh with --engine flag" result="success" detail="Default claude, calls generate-engine.sh, engine in manifest, conditional validation"
+[2026-04-10T23:34:00Z] TASK_END desc="Phase 4: Updated .gitignore + git rm --cached 11 files" result="success" detail="CLAUDE.md, CODEX.md, .claude/settings.json, .claude/commands/, .claude/skills/, .claude/worktrees/"
+[2026-04-10T23:35:00Z] TASK_END desc="Phase 5: Updated dependent files" result="success" detail="validate_skills.py, validate_document_drift.py, new-skill SKILL.md, DISCOVERY.md, init-wizard SKILL.md, AGENT.md, pre-edit-guard.sh"
+[2026-04-10T23:36:00Z] TASK_END desc="Phase 6: Cleaned up stale worktrees" result="success" detail="Removed agent-ab807189 + agent-a6256166 (orphaned metadata)"
+[2026-04-10T23:37:00Z] TASK_END desc="Phase 7: End-to-end verification" result="success" detail="generate-engine.sh (claude+codex), init-project.sh (both engines), validators pass, git status clean"

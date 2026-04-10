@@ -17,23 +17,47 @@ REQUIRED_DIRS = [
     "agents",
     "agents/shared",
     "agents/roles",
+    "agents/engines",
     "scripts/hooks",
     "scripts/validate",
     "scripts/session",
     "scripts/utils",
     "notes",
-    ".claude/commands",
-    ".claude/skills",
 ]
+
+# Engine-conditional directories (generated at init)
+ENGINE_DIRS = {
+    "claude": [".claude/commands", ".claude/skills"],
+}
 
 # Files that should always exist
 REQUIRED_FILES = [
     "AGENT.md",
-    "CLAUDE.md",
-    "CODEX.md",
     "MAINTAINERS.json",
-    ".claude/settings.json",
 ]
+
+# Engine-conditional files (generated at init)
+ENGINE_FILES = {
+    "claude": ["CLAUDE.md", ".claude/settings.json"],
+    "codex": ["CODEX.md"],
+}
+
+
+def _detect_engine() -> str:
+    """Read engine from .archetype-manifest.json, or infer from generated files."""
+    manifest = REPO_ROOT / ".archetype-manifest.json"
+    if manifest.exists():
+        try:
+            data = json.loads(manifest.read_text())
+            return data.get("engine", "")
+        except (json.JSONDecodeError, KeyError):
+            pass
+    # Fallback: infer from which adapter files exist
+    if (REPO_ROOT / "CLAUDE.md").exists():
+        return "claude"
+    if (REPO_ROOT / "CODEX.md").exists():
+        return "codex"
+    return ""
 
 
 def check_required_structure() -> list[str]:
@@ -45,6 +69,17 @@ def check_required_structure() -> list[str]:
     for f in REQUIRED_FILES:
         if not (REPO_ROOT / f).is_file():
             errors.append(f"Required file missing: {f}")
+
+    # Engine-conditional checks (generated files)
+    engine = _detect_engine()
+    if engine:
+        for d in ENGINE_DIRS.get(engine, []):
+            if not (REPO_ROOT / d).is_dir():
+                errors.append(f"Engine directory missing ({engine}): {d}/")
+        for f in ENGINE_FILES.get(engine, []):
+            if not (REPO_ROOT / f).is_file():
+                errors.append(f"Engine file missing ({engine}): {f}")
+
     return errors
 
 
