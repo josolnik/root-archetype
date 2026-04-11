@@ -112,12 +112,16 @@ bash scripts/utils/generate-engine.sh --engine "$ENGINE" --project-dir "$(pwd)"
 copy_sub ".devcontainer/devcontainer.json" ".devcontainer/devcontainer.json"
 copy_sub "secrets/.secretpaths" "secrets/.secretpaths"
 copy_sub "notes/README.md" "notes/README.md"
+copy_sub "notes/handoffs/INDEX.md" "notes/handoffs/INDEX.md"
+copy_sub "logs/README.md" "logs/README.md"
 copy_sub "knowledge/taxonomy.yaml" "knowledge/taxonomy.yaml"
 copy_sub "knowledge/research/intake_index.yaml" "knowledge/research/intake_index.yaml"
 
 # --- Gitkeep empty dirs ---
 touch knowledge/wiki/.gitkeep knowledge/research/.gitkeep \
       knowledge/research/deep-dives/.gitkeep logs/.gitkeep \
+      logs/audit/.gitkeep logs/progress/.gitkeep \
+      notes/handoffs/.gitkeep \
       local/.gitkeep repos/.gitkeep secrets/.gitkeep
 
 # --- Build repo map and register ---
