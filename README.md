@@ -100,7 +100,31 @@ Canonical definitions live in `agents/skills/`, with a catalog at
 
 ## Knowledge Management
 
-Per-user streams (notes, progress logs) flow into compiled shared knowledge:
+Per-user streams (notes, progress logs) flow into compiled shared knowledge.
+No session starts from zero — every agent reads from the compiled wiki.
+
+```
+Session A (dev 1)          Session B (dev 2)
+  notes/dev1/                notes/dev2/
+  progress logs              handoff docs
+       \                        /
+        v                      v
+    ┌──────────────────────────────┐
+    │   /project-wiki compile      │
+    │   synthesize + deduplicate   │
+    └──────────┬───────────────────┘
+               v
+       knowledge/wiki/
+    (compiled, cross-user,
+     cited, queryable)
+               ^
+               |
+    ┌──────────┴───────────────────┐
+    │   /research-intake            │
+    │   external papers, URLs,      │
+    │   benchmarks → deep-dives/    │
+    └──────────────────────────────┘
+```
 
 - **Write to**: `notes/<your-username>/`, `logs/progress/<your-username>/`
 - **Compile via**: `/project-wiki compile` → outputs to `knowledge/wiki/`
@@ -109,6 +133,26 @@ Per-user streams (notes, progress logs) flow into compiled shared knowledge:
 See `notes/README.md` for conventions.
 
 ## Child Repo Management
+
+The root repo governs child repos hierarchically. Shared policy, roles, and
+knowledge flow downward. Each child repo stays self-contained — the root adds
+cross-repo awareness, not coupling.
+
+```
+        ┌─────────────────────────┐
+        │     root-archetype       │
+        │  shared policy & roles   │
+        │  knowledge/wiki/         │
+        │  agents/registry.json    │
+        └──┬────────┬────────┬────┘
+           │        │        │
+     ┌─────┴──┐ ┌───┴────┐ ┌─┴──────┐
+     │  api/  │ │  web/  │ │ infra/ │
+     │AGENT   │ │AGENT   │ │AGENT   │
+     │.md     │ │.md     │ │.md     │
+     └────────┘ └────────┘ └────────┘
+     child repo  child repo  child repo
+```
 
 ```bash
 scripts/repos/register-repo.sh <name> <path>   # Register (symlinks in repos/)
