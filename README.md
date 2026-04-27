@@ -208,6 +208,10 @@ into the root repo's master wiki and research database.
 
 ## Wiki — How to Use, Modify, and Personalize Root-Archetype
 
+**Start here:** [`docs/architecture.md`](docs/architecture.md) — single-page
+system overview with topology, lifecycle, hook flow, and knowledge-pipeline
+diagrams, plus the design philosophy and use-case guide.
+
 [`knowledge/wiki/`](knowledge/wiki/) is the project's compiled reference
 documentation for anyone cloning root-archetype to build a new root repo.
 Each page indexes the source-of-truth files in this repo (`scripts/`,

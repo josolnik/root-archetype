@@ -6,6 +6,9 @@ session-history record.
 
 ## Index
 
+### Start here
+- [System Architecture & Design Philosophy](../../docs/architecture.md) — single-page overview with topology, lifecycle, hook flow, and knowledge-pipeline diagrams, plus design philosophy and use-case guide
+
 ### Getting started
 - [Project Initialization & Setup](project-initialization.md) — `init-project.sh` quick / guided modes, the `init-wizard` skill, what each step does
 - [Engine-Neutral Architecture](engine-neutral-architecture.md) — how the same scaffold runs under Claude Code, Codex, or any future engine
